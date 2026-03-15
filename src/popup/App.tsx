@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { FileText, LoaderCircle, Settings2, Sparkles } from "lucide-react";
+import {
+  ClipboardList,
+  FileText,
+  LoaderCircle,
+  Settings2,
+  Sparkles,
+} from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePopupStore, type PopupTab } from "@/store/use-popup-store";
@@ -22,31 +28,30 @@ const tabItems: Array<{
   label: string;
   icon: typeof Sparkles;
   title: string;
-  description: string;
 }> = [
   {
-    value: "cover-letter",
-    label: "Cover Letter",
-    icon: Sparkles,
-    title: "Cover Letter Workspace",
-    description:
-      "Draft tailored cover letters, refine tone, and keep role-specific notes in one focused panel.",
+    value: "job-description",
+    label: "Job Description",
+    icon: ClipboardList,
+    title: "Job Description",
   },
   {
     value: "cv",
     label: "CV",
     icon: FileText,
     title: "CV Workspace",
-    description:
-      "Organize resumes, highlight experience, and prepare polished versions for each application.",
+  },
+  {
+    value: "cover-letter",
+    label: "Cover Letter",
+    icon: Sparkles,
+    title: "Cover Letter Workspace",
   },
   {
     value: "setting",
     label: "Setting",
     icon: Settings2,
     title: "Extension Settings",
-    description:
-      "Manage preferences, saved defaults, and future integrations from a single control surface.",
   },
 ];
 
@@ -70,6 +75,12 @@ export default function App() {
       setPageTextError("");
 
       try {
+        if (!chrome?.tabs?.query) {
+          throw new Error(
+            "Chrome tab APIs are unavailable. Open this UI from the installed extension instead of the regular Vite web page."
+          );
+        }
+
         const [activeTab] = await chrome.tabs.query({
           active: true,
           currentWindow: true,
@@ -77,6 +88,12 @@ export default function App() {
 
         if (!activeTab?.id) {
           throw new Error("No active tab found.");
+        }
+
+        if (!chrome?.scripting?.executeScript) {
+          throw new Error(
+            "The Chrome scripting API is unavailable in this context. Reload the built extension and make sure the manifest includes the 'scripting' permission."
+          );
         }
 
         const [{ result }] = await chrome.scripting.executeScript({
@@ -146,38 +163,31 @@ export default function App() {
             className="flex h-full min-h-0 flex-col overflow-y-auto"
           >
             <div>
-              <h2 className="mt-4 text-2xl font-semibold">{activeItem.title}</h2>
-              <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-                {activeItem.description}
-              </p>
+              <h2 className="mt-0 text-2xl font-semibold">{activeItem.title}</h2>
             </div>
 
-            <div className="mt-6 rounded-xl border border-dashed border-border bg-background/60 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                Current Page Text
-              </p>
+            {activeItem.value === "job-description" ? (
+              <div className="mt-3">
+                {pageTextStatus === "loading" ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                    Reading text from the active tab...
+                  </div>
+                ) : null}
 
-              {pageTextStatus === "loading" ? (
-                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-                  <LoaderCircle className="h-4 w-4 animate-spin" />
-                  Reading text from the active tab...
-                </div>
-              ) : null}
+                {pageTextStatus === "error" ? (
+                  <p className="text-sm text-muted-foreground">{pageTextError}</p>
+                ) : null}
 
-              {pageTextStatus === "error" ? (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  {pageTextError}
-                </p>
-              ) : null}
-
-              {pageTextStatus === "ready" ? (
-                <div className="mt-3 max-h-[180px] overflow-y-auto rounded-lg border border-border bg-background/80 p-3">
-                  <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-foreground">
-                    {pageText}
-                  </pre>
-                </div>
-              ) : null}
-            </div>
+                {pageTextStatus === "ready" ? (
+                  <div className="overflow-y-auto rounded-lg border border-border bg-background/80 p-3">
+                    <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-foreground">
+                      {pageText}
+                    </pre>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
 
             {activeSamplePdf ? (
               <div className="mt-6 grid min-h-[320px] flex-1 gap-3 rounded-2xl bg-secondary/65 p-4">
@@ -189,7 +199,7 @@ export default function App() {
                   />
                 </div>
               </div>
-            ) : (
+            ) : activeItem.value !== "job-description" ? (
               <div className="mt-6 grid gap-3 rounded-2xl bg-secondary/65 p-4">
                 <div className="rounded-xl border border-dashed border-border bg-background/60 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
@@ -201,7 +211,7 @@ export default function App() {
                   </p>
                 </div>
               </div>
-            )}
+            ) : null}
           </TabsContent>
         </div>
       </Tabs>

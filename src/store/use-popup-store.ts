@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type PopupTab = "cover-letter" | "cv" | "setting";
+export type PopupTab = "cover-letter" | "cv" | "job-description" | "setting";
 
 type PopupState = {
   activeTab: PopupTab;
@@ -8,6 +8,6 @@ type PopupState = {
 };
 
 export const usePopupStore = create<PopupState>((set) => ({
-  activeTab: "cover-letter",
+  activeTab: "job-description",
   setActiveTab: (tab) => set({ activeTab: tab }),
 }));

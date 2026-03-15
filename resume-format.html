@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bhuwan Adhikari Resume</title>
+    <style>
+      @font-face {
+        font-family: "Kollektif";
+        src: url("./src/fonts/Kollektif.ttf") format("truetype");
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "Kollektif";
+        src: url("./src/fonts/Kollektif-Bold.ttf") format("truetype");
+        font-weight: 700;
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: "Kollektif";
+        src: url("./src/fonts/Kollektif-Italic.ttf") format("truetype");
+        font-weight: 400;
+        font-style: italic;
+      }
+
+      @font-face {
+        font-family: "Kollektif";
+        src: url("./src/fonts/Kollektif-BoldItalic.ttf") format("truetype");
+        font-weight: 700;
+        font-style: italic;
+      }
+
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      :root {
+        --font-size-name: 24px;
+        --font-size-role: 14px;
+        --font-size-section-title: 16px;
+        --font-size-body: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #f3f3f3;
+        font-family: "Kollektif", Arial, Helvetica, sans-serif;
+        color: #111;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        padding: 0;
+      }
+
+      .page {
+        width: 210mm;
+        min-height: 297mm;
+        background: #fff;
+        padding: 10mm 18mm;
+      }
+
+      .name {
+        margin: 0;
+        text-align: center;
+        font-size: var(--font-size-name);
+        font-weight: 800;
+        letter-spacing: 0.4px;
+      }
+
+      .role {
+        margin: 2px 0 4px;
+        text-align: center;
+        font-size: var(--font-size-role);
+        font-weight: 800;
+        letter-spacing: 3px;
+      }
+
+      .contact-line {
+        text-align: center;
+        font-size: var(--font-size-body);
+        line-height: 1.35;
+      }
+
+      .contact-line a {
+        color: #0d4fb3;
+        text-decoration: underline;
+      }
+
+      hr {
+        border: 0;
+        border-top: 1px solid #bdbdbd;
+        margin: 8px 0 10px;
+      }
+
+      .profile {
+        margin: 0 0 12px;
+        font-size: var(--font-size-body);
+        line-height: 1.35;
+      }
+
+      .profile strong {
+        font-weight: 800;
+      }
+
+      .section-title {
+        margin: 8px 0;
+        padding: 6px 10px 5px;
+        background: #e9e9e9;
+        color: #0d4fb3;
+        font-size: var(--font-size-section-title);
+        font-weight: 800;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+      }
+
+      .skill-line {
+        margin: 0 0 4px;
+        font-size: var(--font-size-body);
+        line-height: 1.35;
+      }
+
+      .skill-line strong {
+        font-weight: 800;
+      }
+
+      .entry-item {
+        margin-bottom: 12px;
+      }
+
+      .job-header,
+      .education-header {
+        margin: 0;
+        font-size: var(--font-size-body);
+        line-height: 1.4;
+      }
+
+      .date {
+        color: #0d4fb3;
+        font-weight: 800;
+      }
+
+      .title {
+        font-weight: 800;
+      }
+
+      .stack {
+        margin: 1px 0 4px;
+        font-size: var(--font-size-body);
+        line-height: 1.3;
+      }
+
+      .org-line {
+        margin: 0 0 4px;
+        font-size: var(--font-size-body);
+        line-height: 1.3;
+      }
+
+      .org-line em {
+        font-style: italic;
+        text-decoration: underline;
+      }
+
+      ul {
+        margin: 4px 0 0 24px;
+        padding: 0;
+      }
+
+      li {
+        margin-bottom: 3px;
+        font-size: var(--font-size-body);
+        line-height: 1.35;
+      }
+
+      @media print {
+        html,
+        body {
+          background: #f3f3f3;
+        }
+
+        body {
+          padding: 0;
+        }
+
+        .page {
+          width: 210mm;
+          min-height: 297mm;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <h1 class="name">BHUWAN ADHIKARI</h1>
+      <div class="role">SOFTWARE DEVELOPER</div>
+
+      <div class="contact-line">
+        Trier, Germany | +4917676330765 |
+        <a href="mailto:bhuwanadhikari7788@gmail.com">bhuwanadhikari7788@gmail.com</a>
+      </div>
+      <div class="contact-line">
+        Github:
+        <a href="https://github.com/bhuwanadhikari">github.com/bhuwanadhikari</a>
+        | Linkedin:
+        <a href="https://linkedin.com/in/bhuwanadhikari">linkedin.com/in/bhuwanadhikari</a>
+      </div>
+
+      <hr />
+
+      <p class="profile">
+        <strong>Profile:</strong> Full stack developer with 4 years’ experience in full stack
+        development; Now, pursuing MSc. in NLP to specialize in AI and Linguistics, while
+        continuously learning and evolving for the future.
+      </p>
+
+      <div class="section-title">Skills</div>
+      <p class="skill-line">
+        <strong>Frontend:</strong> React.js, Next.js, Redux, Jest, React Testing Library, Vite,
+        React Native, Expo,
+      </p>
+      <p class="skill-line">
+        <strong>Backend:</strong> Node.js, Typescript, Express.js, PostgreSQL, MongoDB, REST API,
+        Docker
+      </p>
+
+      <div class="section-title">Professional Experience</div>
+
+      <div class="entry-item">
+        <p class="job-header">
+          <span class="date">Mar 2022 - Feb 2025</span> |
+          <span class="title">Software Developer</span>
+        </p>
+        <p class="stack">[React.js, Node.js, Express.js, Typescript, PostgreSQL, React Native, Agile, SCRUM]</p>
+        <p class="org-line"><em>Lasting Dynamics</em> | Las Palmas, Spain (Remote)</p>
+        <ul>
+          <li>
+            Designed and developed enterprise-level web and cross-platform mobile applications
+            using React Native, React.js, Redux, Typescript, Next.js.
+          </li>
+          <li>
+            Implemented room-based real-time communication using Socket.io, enabling targeted
+            event broadcasting to specific users and groups.
+          </li>
+          <li>
+            Implemented user authentication and role based authorization system using JWT and
+            OAuth2, securing endpoints for 5K+ registered users
+          </li>
+          <li>
+            Added API documentation with Swagger and aligned endpoints with frontend needs to
+            reduce integration back-and-forth.
+          </li>
+          <li>
+            Built background PDF generation and email delivery system using Node.js, PostgreSQL,
+            Redis (BullMQ), and AWS SES
+          </li>
+          <li>
+            Guided and mentored 4 junior developers through code reviews and pair programming,
+            resulting better code quality, accelerated feature delivery, and increased bug-fixes in
+            later sprints by 1.5x.
+          </li>
+        </ul>
+      </div>
+
+      <div class="entry-item">
+        <p class="job-header">
+          <span class="date">May 2021 - Feb 2022</span> |
+          <span class="title">Software Developer</span>
+        </p>
+        <p class="stack">[React.js, Next.js, Node.js, Typescript, Postgresql, Docker, Git, Jira]</p>
+        <p class="org-line"><em>Khalti</em> | Lalitpur, Nepal</p>
+        <ul>
+          <li>
+            Designed, developed and maintained backend RESTful API (with Express.js/Nest.js) and
+            frontend components(using React.js/Next.js) of payment gateway system used by 1M+
+            users
+          </li>
+          <li>
+            Implemented modular components with efficient performance using memoization, lazy
+            loading, and code splitting.
+          </li>
+          <li>
+            Developed automated data migration scripts, successfully transferring 500K+ records
+            from legacy system with zero data loss
+          </li>
+        </ul>
+      </div>
+
+      <div class="section-title">Education</div>
+
+      <div class="entry-item">
+        <p class="education-header">
+          <span class="date">Oct 2025 - Present</span> |
+          <span class="title">MSc. in Natural Language Processing</span>
+        </p>
+        <p class="org-line"><em>Universität Trier</em> | Trier, Germany</p>
+        <ul>
+          <li>
+            Researching and learning code-generation principles in NLP; an intersection of AI and
+            software engineering; developing projects using Hugging Face Transformers, spaCy,
+            Pytorch and NLTK.
+          </li>
+        </ul>
+      </div>
+
+      <div class="entry-item">
+        <p class="education-header">
+          <span class="date">Nov 2016 - May 2021</span> |
+          <span class="title">Bachelors Degree in Computer Engineering</span>
+        </p>
+        <p class="org-line"><em>Tribhuvan University</em> | Kathmandu, Nepal</p>
+        <ul>
+          <li>
+            Participated in hackthons building projects in robotics, AI and microcontroller
+            programming.
+          </li>
+          <li>
+            Built blockchain-based medicine supply chain system using private blockchain network,
+            demonstrating distributed systems and knowledge of cryptography as final year project.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
 
+import { CV_OWNER_NAME } from "../../constants/constants";
 import { cvTemplateStyles } from "../../constants/cvStyles";
 import { useCV } from "../../hooks/useCV";
 
@@ -51,7 +51,11 @@ const previewViewportStyle: React.CSSProperties = {
 
 
 
-export function CvTabBody() {
+type CvTabBodyProps = {
+  pageTitleFirstWord?: string;
+};
+
+export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
   const {
     previewViewportRef,
     cvTemplateRef,
@@ -59,7 +63,7 @@ export function CvTabBody() {
     downloadError,
     handleDownloadPdf,
     isDownloading,
-  } = useCV();
+  } = useCV(pageTitleFirstWord);
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div ref={previewViewportRef} style={previewViewportStyle}>
@@ -75,7 +79,7 @@ export function CvTabBody() {
           <style>{cvTemplateStyles}</style>
 
           <div className="cv-document__page">
-            <h1 className="cv-document__name">BHUWAN ADHIKARI</h1>
+            <h1 className="cv-document__name">{CV_OWNER_NAME}</h1>
             <div className="cv-document__role">SOFTWARE DEVELOPER</div>
             <div className="cv-document__contact-line">
               Trier, Germany | +4917676330765 |{" "}

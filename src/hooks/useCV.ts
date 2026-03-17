@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { A4_PAGE_WIDTH_PX } from "../constants/constants";
+import { A4_PAGE_WIDTH_PX, CV_OWNER_NAME } from "../constants/constants";
 import { cvTemplateStyles } from "../constants/cvStyles";
 
-export const useCV = () => {
+export const useCV = (pageTitleFirstWord = "") => {
   const cvTemplateRef = useRef<HTMLElement | null>(null);
   const previewViewportRef = useRef<HTMLDivElement | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -43,7 +43,10 @@ export const useCV = () => {
     setDownloadError("");
 
     try {
-      const printHtml = buildPrintDocument(cvTemplateRef.current.outerHTML);
+      const printHtml = buildPrintDocument(
+        cvTemplateRef.current.outerHTML,
+        buildSuggestedPdfTitle(pageTitleFirstWord),
+      );
       const printWindow = window.open("", "_blank");
 
       if (!printWindow) {
@@ -91,7 +94,7 @@ export const useCV = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [isDownloading]);
+  }, [isDownloading, pageTitleFirstWord]);
 
   return {
     previewViewportRef,
@@ -103,13 +106,13 @@ export const useCV = () => {
   };
 };
 
-function buildPrintDocument(templateMarkup: string) {
+function buildPrintDocument(templateMarkup: string, documentTitle: string) {
   return `<!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>CV Template</title>
+        <title>${escapeHtml(documentTitle)}</title>
         <style>
           html, body {
             margin: 0;
@@ -129,4 +132,18 @@ function buildPrintDocument(templateMarkup: string) {
         ${templateMarkup}
       </body>
     </html>`;
+}
+
+function buildSuggestedPdfTitle(pageTitleFirstWord: string) {
+  return pageTitleFirstWord
+    ? `${CV_OWNER_NAME} CV ${pageTitleFirstWord}`
+    : `${CV_OWNER_NAME} CV`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

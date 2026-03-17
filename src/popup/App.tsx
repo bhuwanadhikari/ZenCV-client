@@ -64,6 +64,7 @@ export default function App() {
     tabItems.find(({ value }) => value === activeTab) ?? tabItems[0];
   const activeSamplePdf = samplePdfByTab[activeItem.value];
   const [pageText, setPageText] = useState("");
+  const [pageTitleSnippet, setPageTitleSnippet] = useState("");
   const [pageTextStatus, setPageTextStatus] = useState<
     "idle" | "loading" | "ready" | "error"
   >("idle");
@@ -93,6 +94,8 @@ export default function App() {
           throw new Error("No active tab found.");
         }
 
+        setPageTitleSnippet(extractFirstTwoWords(activeTab.title ?? ""));
+
         if (!chrome?.scripting?.executeScript) {
           throw new Error(
             "The Chrome scripting API is unavailable in this context. Reload the built extension and make sure the manifest includes the 'scripting' permission."
@@ -116,6 +119,7 @@ export default function App() {
         }
 
         setPageText("");
+        setPageTitleSnippet("");
         setPageTextStatus("error");
         setPageTextError(
           error instanceof Error
@@ -217,7 +221,7 @@ export default function App() {
               ) : null}
 
               {activeItem.value === "cv" ? (
-                <CvTabBody />
+                <CvTabBody pageTitleFirstWord={pageTitleSnippet} />
               ) : activeSamplePdf ? (
                 <CoverLetterTabBody
                   src={activeSamplePdf.src}
@@ -232,4 +236,8 @@ export default function App() {
       </Tabs>
     </main>
   );
+}
+
+function extractFirstTwoWords(title: string) {
+  return title.trim().match(/\S+(?:\s+\S+)?/)?.[0] ?? "";
 }

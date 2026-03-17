@@ -1,8 +1,12 @@
+import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
-import { CV_OWNER_NAME } from "../../constants/constants";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cvData } from "../../constants/cvData";
 import { cvTemplateStyles } from "../../constants/cvStyles";
 import { useCV } from "../../hooks/useCV";
+
+const CV_PREVIEW_SKELETON_DELAY_MS = 700;
 
 const toolbarStyle: React.CSSProperties = {
   display: "flex",
@@ -49,8 +53,6 @@ const previewViewportStyle: React.CSSProperties = {
   marginTop: "8px",
 };
 
-
-
 type CvTabBodyProps = {
   pageTitleFirstWord?: string;
 };
@@ -64,256 +66,174 @@ export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
     handleDownloadPdf,
     isDownloading,
   } = useCV(pageTitleFirstWord);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(true);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsPreviewLoading(false);
+    }, CV_PREVIEW_SKELETON_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div ref={previewViewportRef} style={previewViewportStyle}>
-        <article
-          ref={cvTemplateRef}
-          className="cv-document cv-document--preview"
-          style={
-            {
-              "--cv-preview-zoom": String(previewZoom),
-            } as React.CSSProperties
-          }
-        >
-          <style>{cvTemplateStyles}</style>
+        {isPreviewLoading ? (
+          <CvPreviewSkeleton />
+        ) : (
+          <article
+            ref={cvTemplateRef}
+            className="cv-document cv-document--preview"
+            style={
+              {
+                "--cv-preview-zoom": String(previewZoom),
+              } as React.CSSProperties
+            }
+          >
+            <style>{cvTemplateStyles}</style>
 
-          <div className="cv-document__page">
-            <h1 className="cv-document__name">{CV_OWNER_NAME}</h1>
-            <div className="cv-document__role">SOFTWARE DEVELOPER</div>
-            <div className="cv-document__contact-line">
-              Trier, Germany | +4917676330765 |{" "}
-              <a href="mailto:bhuwanadhikari7788@gmail.com">
-                bhuwanadhikari7788@gmail.com
-              </a>
+            <div className="cv-document__page">
+              <h1 className="cv-document__name">{cvData.name}</h1>
+              <div className="cv-document__role">{cvData.role}</div>
+              {cvData.contactLines.map((line, lineIndex) => (
+                <div
+                  key={`contact-line-${lineIndex}`}
+                  className="cv-document__contact-line"
+                >
+                  {line.map((item, itemIndex) => (
+                    <span key={`${item.label ?? item.value}-${itemIndex}`}>
+                      {itemIndex > 0 ? " | " : null}
+                      {item.label ? `${item.label}: ` : null}
+                      {item.href ? (
+                        <a href={item.href}>{item.value}</a>
+                      ) : (
+                        item.value
+                      )}
+                    </span>
+                  ))}
+                </div>
+              ))}
+              <hr className="cv-document__divider" />
+
+              <p className="cv-document__profile">
+                <strong>{cvData.profile.label}:</strong> {cvData.profile.summary}
+              </p>
+
+              <div className="cv-document__section-title">Skills</div>
+              {cvData.skillGroups.map((skillGroup) => (
+                <p key={skillGroup.label} className="cv-document__skill-line">
+                  <strong>{skillGroup.label}:</strong>{" "}
+                  {skillGroup.items.join(", ")}
+                </p>
+              ))}
+
+              {cvData.sections.map((section) => (
+                <div key={section.title}>
+                  <div className="cv-document__section-title">{section.title}</div>
+
+                  {section.entries.map((entry) => (
+                    <div
+                      key={`${entry.title}-${entry.dateRange}`}
+                      className="cv-document__entry"
+                    >
+                      <p className="cv-document__header">
+                        <span className="cv-document__date">
+                          {entry.dateRange}
+                        </span>{" "}
+                        |{" "}
+                        <span className="cv-document__title">{entry.title}</span>
+                      </p>
+                      {entry.stack ? (
+                        <p className="cv-document__stack">
+                          [{entry.stack.join(", ")}]
+                        </p>
+                      ) : null}
+                      <p className="cv-document__org-line">
+                        <em>{entry.organization}</em> | {entry.location}
+                      </p>
+                      <ul className="cv-document__list">
+                        {entry.bullets.map((bullet, bulletIndex) => (
+                          <li key={`${entry.title}-bullet-${bulletIndex}`}>
+                            <span className="cv-document__bullet" aria-hidden="true">
+                              •
+                            </span>
+                            <span className="cv-document__bullet-text">
+                              {bullet}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
-            <div className="cv-document__contact-line">
-              Github:{" "}
-              <a href="https://github.com/bhuwanadhikari">
-                github.com/bhuwanadhikari
-              </a>{" "}
-              | Linkedin:{" "}
-              <a href="https://linkedin.com/in/bhuwanadhikari">
-                linkedin.com/in/bhuwanadhikari
-              </a>
-            </div>
-            <hr className="cv-document__divider" />
-
-            <p className="cv-document__profile">
-              <strong>Profile:</strong> Full stack developer with 4 years&apos;
-              experience in full stack development; now pursuing MSc. in NLP to
-              specialize in AI and Linguistics, while continuously learning and
-              evolving for the future.
-            </p>
-
-            <div className="cv-document__section-title">Skills</div>
-            <p className="cv-document__skill-line">
-              <strong>Frontend:</strong> React.js, Next.js, Redux, Jest, React
-              Testing Library, Vite, React Native, Expo
-            </p>
-            <p className="cv-document__skill-line">
-              <strong>Backend:</strong> Node.js, Typescript, Express.js,
-              PostgreSQL, MongoDB, REST API, Docker
-            </p>
-
-            <div className="cv-document__section-title">
-              Professional Experience
-            </div>
-
-            <div className="cv-document__entry">
-              <p className="cv-document__header">
-                <span className="cv-document__date">Mar 2022 - Feb 2025</span> |{" "}
-                <span className="cv-document__title">Software Developer</span>
-              </p>
-              <p className="cv-document__stack">
-                [React.js, Node.js, Express.js, Typescript, PostgreSQL, React
-                Native, Agile, SCRUM]
-              </p>
-              <p className="cv-document__org-line">
-                <em>Lasting Dynamics</em> | Las Palmas, Spain (Remote)
-              </p>
-              <ul className="cv-document__list">
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Designed and developed enterprise-level web and
-                    cross-platform mobile applications using React Native,
-                    React.js, Redux, Typescript, and Next.js.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Implemented room-based real-time communication using
-                    Socket.io, enabling targeted event broadcasting to specific
-                    users and groups.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Implemented user authentication and role-based authorization
-                    using JWT and OAuth2, securing endpoints for 5K+ registered
-                    users.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Added API documentation with Swagger and aligned endpoints
-                    with frontend needs to reduce integration back-and-forth.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Built a background PDF generation and email delivery system
-                    using Node.js, PostgreSQL, Redis (BullMQ), and AWS SES.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Guided and mentored 4 junior developers through code reviews
-                    and pair programming, improving code quality and
-                    accelerating later sprint bug fixes by 1.5x.
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="cv-document__entry">
-              <p className="cv-document__header">
-                <span className="cv-document__date">May 2021 - Feb 2022</span> |{" "}
-                <span className="cv-document__title">Software Developer</span>
-              </p>
-              <p className="cv-document__stack">
-                [React.js, Next.js, Node.js, Typescript, Postgresql, Docker,
-                Git, Jira]
-              </p>
-              <p className="cv-document__org-line">
-                <em>Khalti</em> | Lalitpur, Nepal
-              </p>
-              <ul className="cv-document__list">
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Designed, developed, and maintained backend RESTful APIs
-                    with Express.js/Nest.js and frontend components with
-                    React.js and Next.js for a payment gateway used by 1M+
-                    users.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Implemented modular components with efficient performance
-                    using memoization, lazy loading, and code splitting.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Developed automated data migration scripts, successfully
-                    transferring 500K+ records from a legacy system with zero
-                    data loss.
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="cv-document__section-title">Education</div>
-
-            <div className="cv-document__entry">
-              <p className="cv-document__header">
-                <span className="cv-document__date">Oct 2025 - Present</span> |{" "}
-                <span className="cv-document__title">
-                  MSc. in Natural Language Processing
-                </span>
-              </p>
-              <p className="cv-document__org-line">
-                <em>Universitat Trier</em> | Trier, Germany
-              </p>
-              <ul className="cv-document__list">
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Researching and learning code-generation principles in NLP
-                    at the intersection of AI and software engineering, while
-                    building projects with Hugging Face Transformers, spaCy,
-                    Pytorch, and NLTK.
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="cv-document__entry">
-              <p className="cv-document__header">
-                <span className="cv-document__date">Nov 2016 - May 2021</span> |{" "}
-                <span className="cv-document__title">
-                  Bachelors Degree in Computer Engineering
-                </span>
-              </p>
-              <p className="cv-document__org-line">
-                <em>Tribhuvan University</em> | Kathmandu, Nepal
-              </p>
-              <ul className="cv-document__list">
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Participated in hackathons building projects in robotics,
-                    AI, and microcontroller programming.
-                  </span>
-                </li>
-                <li>
-                  <span className="cv-document__bullet" aria-hidden="true">
-                    •
-                  </span>
-                  <span className="cv-document__bullet-text">
-                    Built a blockchain-based medicine supply chain system using
-                    a private blockchain network as a final year project,
-                    demonstrating distributed systems and applied cryptography.
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </article>
+          </article>
+        )}
       </div>
 
       <div style={toolbarStyle}>
-        {downloadError ? <p style={errorStyle}>{downloadError}</p> : null}
-        <button
-          type="button"
-          onClick={handleDownloadPdf}
-          disabled={isDownloading}
-          style={isDownloading ? disabledButtonStyle : buttonStyle}
-        >
-          <Download size={16} />
-          {isDownloading ? "Opening Print" : "Save as PDF"}
-        </button>
+        {isPreviewLoading ? (
+          <Skeleton className="h-10 w-36 rounded-full" />
+        ) : (
+          <>
+            {downloadError ? <p style={errorStyle}>{downloadError}</p> : null}
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              style={isDownloading ? disabledButtonStyle : buttonStyle}
+            >
+              <Download size={16} />
+              {isDownloading ? "Opening Print" : "Save as PDF"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CvPreviewSkeleton() {
+  return (
+    <div className="flex min-h-full items-start justify-center px-3 pb-4">
+      <div className="flex w-full max-w-[820px] flex-col gap-5 rounded-[28px] border border-slate-200/80 bg-white/85 p-6 shadow-sm">
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-9 w-2/5" />
+          <Skeleton className="h-5 w-1/4" />
+          <Skeleton className="h-4 w-11/12" />
+          <Skeleton className="h-4 w-4/5" />
+        </div>
+
+        <Skeleton className="h-px w-full" />
+
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-10/12" />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-11/12" />
+          <Skeleton className="h-4 w-10/12" />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-5 w-32" />
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="flex flex-col gap-2">
+              <Skeleton className="h-4 w-3/5" />
+              <Skeleton className="h-4 w-2/5" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-11/12" />
+              <Skeleton className="h-4 w-10/12" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

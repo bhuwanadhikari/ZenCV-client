@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
 
 import kollektifRegularUrl from "@/fonts/Kollektif.ttf";
@@ -157,11 +157,11 @@ const cvTemplateStyles = `
   .cv-document__divider {
     border: 0;
     border-top: 1px solid #bdbdbd;
-    margin: 8px 0 10px;
+    margin: 6px 0 8px;
   }
 
   .cv-document__profile {
-    margin: 0 0 12px;
+    margin: 0 0 8px 0;
     font-size: var(--font-size-body);
     line-height: 1.35;
   }
@@ -172,7 +172,7 @@ const cvTemplateStyles = `
   }
 
   .cv-document__section-title {
-    margin: 8px 0;
+    margin: 6px 0;
     display: flex;
     align-items: center;
     min-height: 34px;
@@ -193,7 +193,7 @@ const cvTemplateStyles = `
   }
 
   .cv-document__entry {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 
   .cv-document__header {
@@ -232,7 +232,7 @@ const cvTemplateStyles = `
   .cv-document__list li {
     display: grid;
     grid-template-columns: 10px 1fr;
-    column-gap: 8px;
+    // column-gap: 8px;
     align-items: start;
     margin-bottom: 3px;
     font-size: var(--font-size-body);
@@ -338,7 +338,7 @@ export function CvTabBody() {
     };
   }, []);
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPdf = useCallback(async () => {
     if (!cvTemplateRef.current || isDownloading) {
       return;
     }
@@ -358,9 +358,34 @@ export function CvTabBody() {
       printWindow.document.write(printHtml);
       printWindow.document.close();
 
+      const images = Array.from(printWindow.document.images);
+      await Promise.all(
+        images.map(
+          (image) =>
+            new Promise<void>((resolve) => {
+              if (image.complete) {
+                resolve();
+                return;
+              }
+
+              image.addEventListener("load", () => resolve(), {
+                once: true,
+              });
+              image.addEventListener("error", () => resolve(), {
+                once: true,
+              });
+            }),
+        ),
+      );
+
+      if ("fonts" in printWindow.document) {
+        await printWindow.document.fonts.ready;
+      }
+
       try {
         printWindow.focus();
         printWindow.print();
+        printWindow.close();
       } catch (printError) {
         console.error(printError);
       }
@@ -370,7 +395,7 @@ export function CvTabBody() {
     } finally {
       setIsDownloading(false);
     }
-  };
+  }, [isDownloading]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">

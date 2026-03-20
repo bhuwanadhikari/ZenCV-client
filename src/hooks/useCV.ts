@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { A4_PAGE_WIDTH_PX, CV_OWNER_NAME } from "../constants/constants";
+import { A4_PAGE_WIDTH_PX } from "../constants/constants";
 import { cvTemplateStyles } from "../constants/cvStyles";
 
-export const useCV = (pageTitleFirstWord = "") => {
+export const useCV = (pageTitleFirstWord = "", cvOwnerName = "") => {
   const cvTemplateRef = useRef<HTMLElement | null>(null);
   const previewViewportRef = useRef<HTMLDivElement | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -45,7 +45,7 @@ export const useCV = (pageTitleFirstWord = "") => {
     try {
       const printHtml = buildPrintDocument(
         cvTemplateRef.current.outerHTML,
-        buildSuggestedPdfTitle(pageTitleFirstWord),
+        buildSuggestedPdfTitle(pageTitleFirstWord, cvOwnerName),
       );
       const printWindow = window.open("", "_blank");
 
@@ -94,7 +94,7 @@ export const useCV = (pageTitleFirstWord = "") => {
     } finally {
       setIsDownloading(false);
     }
-  }, [isDownloading, pageTitleFirstWord]);
+  }, [cvOwnerName, isDownloading, pageTitleFirstWord]);
 
   return {
     previewViewportRef,
@@ -134,10 +134,12 @@ function buildPrintDocument(templateMarkup: string, documentTitle: string) {
     </html>`;
 }
 
-function buildSuggestedPdfTitle(pageTitleFirstWord: string) {
+function buildSuggestedPdfTitle(pageTitleFirstWord: string, cvOwnerName: string) {
+  const ownerName = cvOwnerName.trim() || "Candidate";
+
   return pageTitleFirstWord
-    ? `${CV_OWNER_NAME} CV ${pageTitleFirstWord}`
-    : `${CV_OWNER_NAME} CV`;
+    ? `${ownerName} CV ${pageTitleFirstWord}`
+    : `${ownerName} CV`;
 }
 
 function escapeHtml(value: string) {

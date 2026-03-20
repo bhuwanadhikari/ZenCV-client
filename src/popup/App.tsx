@@ -64,6 +64,8 @@ export default function App() {
     tabItems.find(({ value }) => value === activeTab) ?? tabItems[0];
   const activeSamplePdf = samplePdfByTab[activeItem.value];
   const [pageText, setPageText] = useState("");
+  const [pageTitle, setPageTitle] = useState("");
+  const [pageUrl, setPageUrl] = useState("");
   const [pageTitleSnippet, setPageTitleSnippet] = useState("");
   const [pageTextStatus, setPageTextStatus] = useState<
     "idle" | "loading" | "ready" | "error"
@@ -94,6 +96,8 @@ export default function App() {
           throw new Error("No active tab found.");
         }
 
+        setPageTitle(activeTab.title ?? "");
+        setPageUrl(activeTab.url ?? "");
         setPageTitleSnippet(extractFirstTwoWords(activeTab.title ?? ""));
 
         if (!chrome?.scripting?.executeScript) {
@@ -119,6 +123,8 @@ export default function App() {
         }
 
         setPageText("");
+        setPageTitle("");
+        setPageUrl("");
         setPageTitleSnippet("");
         setPageTextStatus("error");
         setPageTextError(
@@ -221,7 +227,14 @@ export default function App() {
               ) : null}
 
               {activeItem.value === "cv" ? (
-                <CvTabBody pageTitleFirstWord={pageTitleSnippet} />
+                <CvTabBody
+                  pageTitle={pageTitle}
+                  pageUrl={pageUrl}
+                  pageTitleFirstWord={pageTitleSnippet}
+                  pageText={pageText}
+                  pageTextStatus={pageTextStatus}
+                  pageTextError={pageTextError}
+                />
               ) : activeSamplePdf ? (
                 <CoverLetterTabBody
                   src={activeSamplePdf.src}

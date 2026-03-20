@@ -90,7 +90,8 @@ export const cvTemplateStyles = `
     text-align: center;
     font-size: var(--font-size-role);
     font-weight: 800;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
   }
 
   .cv-document__contact-line {
@@ -171,6 +172,11 @@ export const cvTemplateStyles = `
   .cv-document__org-line em {
     font-style: italic;
     text-decoration: underline;
+  }
+
+  .cv-document__org-line a {
+    color: inherit;
+    text-decoration: none;
   }
 
   .cv-document__list {

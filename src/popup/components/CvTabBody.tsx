@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { cvData } from "../../constants/cvData";
+import { GENERATE_CV_ENDPOINT, getGeneratedCv } from "@/lib/api";
 import { cvTemplateStyles } from "../../constants/cvStyles";
 import { useCV } from "../../hooks/useCV";
 
@@ -18,6 +19,52 @@ const toolbarStyle: React.CSSProperties = {
 const errorStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "12px",
+  color: "#be123c",
+};
+
+const statusCardStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "flex-start",
+  justifyContent: "space-between",
+  gap: "12px",
+  borderRadius: "20px",
+  border: "1px solid #dbeafe",
+  background: "#f8fbff",
+  padding: "14px 16px",
+};
+
+const statusTextStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: "12px",
+  color: "#334155",
+};
+
+const statusLabelStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  borderRadius: "999px",
+  padding: "4px 8px",
+  fontSize: "11px",
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+};
+
+const statusSuccessStyle: React.CSSProperties = {
+  ...statusLabelStyle,
+  background: "#dcfce7",
+  color: "#166534",
+};
+
+const statusLoadingStyle: React.CSSProperties = {
+  ...statusLabelStyle,
+  background: "#e0f2fe",
+  color: "#075985",
+};
+
+const statusErrorLabelStyle: React.CSSProperties = {
+  ...statusLabelStyle,
+  background: "#ffe4e6",
   color: "#be123c",
 };
 
@@ -46,6 +93,20 @@ const disabledButtonStyle: React.CSSProperties = {
   cursor: "not-allowed",
 };
 
+const secondaryButtonStyle: React.CSSProperties = {
+  ...buttonStyle,
+  marginTop: 0,
+  padding: "6px 10px",
+  fontSize: "11px",
+  letterSpacing: "0.1em",
+};
+
+const disabledSecondaryButtonStyle: React.CSSProperties = {
+  ...secondaryButtonStyle,
+  opacity: 0.7,
+  cursor: "not-allowed",
+};
+
 const previewViewportStyle: React.CSSProperties = {
   flex: 1,
   minHeight: 0,
@@ -53,11 +114,52 @@ const previewViewportStyle: React.CSSProperties = {
   marginTop: "8px",
 };
 
-type CvTabBodyProps = {
-  pageTitleFirstWord?: string;
+const contentErrorStyle: React.CSSProperties = {
+  margin: 0,
+  padding: "20px",
+  borderRadius: "20px",
+  border: "1px solid #fecdd3",
+  background: "#fff1f2",
+  fontSize: "13px",
+  color: "#9f1239",
 };
 
-export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
+type CvTabBodyProps = {
+  pageTitle?: string;
+  pageUrl?: string;
+  pageTitleFirstWord?: string;
+  pageText?: string;
+  pageTextStatus?: "idle" | "loading" | "ready" | "error";
+  pageTextError?: string;
+};
+
+export function CvTabBody({
+  pageTitle = "",
+  pageUrl = "",
+  pageTitleFirstWord = "",
+  pageText = "",
+  pageTextStatus = "idle",
+  pageTextError = "",
+}: CvTabBodyProps) {
+  const canGenerateCv = pageTextStatus === "ready" && pageText.trim().length > 0;
+  const {
+    data: generatedCvResponse,
+    error: generatedCvError,
+    isPending: isGeneratedCvPending,
+    isFetching: isGeneratedCvFetching,
+    refetch: refetchGeneratedCv,
+  } = useQuery({
+    queryKey: ["generated-cv", pageText, pageTitle, pageUrl],
+    queryFn: () =>
+      getGeneratedCv({
+        jobDescription: pageText,
+        job_url: pageUrl,
+        page_title: pageTitle,
+        storyJsonOverride: { hi: "hello" },
+      }),
+    enabled: canGenerateCv,
+  });
+  const generatedCv = generatedCvResponse?.cv;
   const {
     previewViewportRef,
     cvTemplateRef,
@@ -65,8 +167,10 @@ export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
     downloadError,
     handleDownloadPdf,
     isDownloading,
-  } = useCV(pageTitleFirstWord);
+  } = useCV(pageTitleFirstWord, generatedCv?.name);
   const [isPreviewLoading, setIsPreviewLoading] = useState(true);
+  const shouldShowPreviewSkeleton =
+    isPreviewLoading || (canGenerateCv && isGeneratedCvPending);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -80,9 +184,78 @@ export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div style={statusCardStyle}>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <span
+              style={
+                generatedCv
+                  ? statusSuccessStyle
+                  : canGenerateCv &&
+                      (isGeneratedCvPending || isGeneratedCvFetching)
+                    ? statusLoadingStyle
+                    : statusErrorLabelStyle
+              }
+            >
+              {generatedCv
+                ? "CV Ready"
+                : canGenerateCv && (isGeneratedCvPending || isGeneratedCvFetching)
+                  ? "Generating"
+                  : canGenerateCv
+                    ? "Failed"
+                    : "Waiting"}
+            </span>
+            <p style={statusTextStyle}>POST {GENERATE_CV_ENDPOINT}</p>
+          </div>
+
+          <p style={statusTextStyle}>
+            {generatedCv
+              ? `CV loaded from the API with status ${generatedCvResponse.status}.`
+              : canGenerateCv && (isGeneratedCvPending || isGeneratedCvFetching)
+                ? "Requesting generated CV data from the local API."
+                : pageTextStatus === "loading"
+                  ? "Reading the current page text before generating the CV."
+                  : pageTextStatus === "error"
+                    ? pageTextError || "Unable to read the current page text."
+                    : !canGenerateCv
+                      ? "Waiting for job description text before generating the CV."
+                : generatedCvError instanceof Error
+                  ? generatedCvError.message
+                  : "Unable to generate the CV from the local API."}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            void refetchGeneratedCv();
+          }}
+          disabled={!canGenerateCv || isGeneratedCvFetching}
+          style={
+            !canGenerateCv || isGeneratedCvFetching
+              ? disabledSecondaryButtonStyle
+              : secondaryButtonStyle
+          }
+        >
+          {isGeneratedCvFetching ? "Retrying" : "Retry"}
+        </button>
+      </div>
+
       <div ref={previewViewportRef} style={previewViewportStyle}>
-        {isPreviewLoading ? (
+        {shouldShowPreviewSkeleton ? (
           <CvPreviewSkeleton />
+        ) : !canGenerateCv ? (
+          <p style={contentErrorStyle}>
+            {pageTextStatus === "error"
+              ? pageTextError || "Unable to read the current page text."
+              : "Read a job description first to generate the CV."}
+          </p>
+        ) : !generatedCv ? (
+          <p style={contentErrorStyle}>
+            {generatedCvError instanceof Error
+              ? generatedCvError.message
+              : "The generated CV response is unavailable."}
+          </p>
         ) : (
           <article
             ref={cvTemplateRef}
@@ -96,9 +269,9 @@ export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
             <style>{cvTemplateStyles}</style>
 
             <div className="cv-document__page">
-              <h1 className="cv-document__name">{cvData.name}</h1>
-              <div className="cv-document__role">{cvData.role}</div>
-              {cvData.contactLines.map((line, lineIndex) => (
+              <h1 className="cv-document__name">{generatedCv.name}</h1>
+              <div className="cv-document__role">{generatedCv.role}</div>
+              {generatedCv.contactLines.map((line, lineIndex) => (
                 <div
                   key={`contact-line-${lineIndex}`}
                   className="cv-document__contact-line"
@@ -119,18 +292,19 @@ export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
               <hr className="cv-document__divider" />
 
               <p className="cv-document__profile">
-                <strong>{cvData.profile.label}:</strong> {cvData.profile.summary}
+                <strong>{generatedCv.profile.label}:</strong>{" "}
+                {generatedCv.profile.summary}
               </p>
 
               <div className="cv-document__section-title">Skills</div>
-              {cvData.skillGroups.map((skillGroup) => (
+              {generatedCv.skillGroups.map((skillGroup) => (
                 <p key={skillGroup.label} className="cv-document__skill-line">
                   <strong>{skillGroup.label}:</strong>{" "}
                   {skillGroup.items.join(", ")}
                 </p>
               ))}
 
-              {cvData.sections.map((section) => (
+              {generatedCv.sections.map((section) => (
                 <div key={section.title}>
                   <div className="cv-document__section-title">{section.title}</div>
 
@@ -146,13 +320,20 @@ export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
                         |{" "}
                         <span className="cv-document__title">{entry.title}</span>
                       </p>
-                      {entry.stack ? (
+                      {entry.stack && entry.stack.length > 0 ? (
                         <p className="cv-document__stack">
                           [{entry.stack.join(", ")}]
                         </p>
                       ) : null}
                       <p className="cv-document__org-line">
-                        <em>{entry.organization}</em> | {entry.location}
+                        {entry.link ? (
+                          <a href={entry.link}>
+                            <em>{entry.organization}</em>
+                          </a>
+                        ) : (
+                          <em>{entry.organization}</em>
+                        )}{" "}
+                        | {entry.location}
                       </p>
                       <ul className="cv-document__list">
                         {entry.bullets.map((bullet, bulletIndex) => (
@@ -176,8 +357,12 @@ export function CvTabBody({ pageTitleFirstWord = "" }: CvTabBodyProps) {
       </div>
 
       <div style={toolbarStyle}>
-        {isPreviewLoading ? (
+        {shouldShowPreviewSkeleton ? (
           <Skeleton className="h-10 w-36 rounded-full" />
+        ) : !canGenerateCv ? (
+          <p style={errorStyle}>Job description text is required before export.</p>
+        ) : !generatedCv ? (
+          <p style={errorStyle}>Generate the CV from the API to enable PDF export.</p>
         ) : (
           <>
             {downloadError ? <p style={errorStyle}>{downloadError}</p> : null}

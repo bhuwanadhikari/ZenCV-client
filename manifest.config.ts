@@ -8,7 +8,7 @@ export function buildManifest(env: ExtensionEnvInput = process.env) {
 
   return defineManifest({
     manifest_version: 3,
-    name: "IntelliCV",
+    name: "GenCV",
     version: "0.1.0",
     description:
       "A Chrome extension popup for managing cover letters, CVs, and settings.",
@@ -21,7 +21,7 @@ export function buildManifest(env: ExtensionEnvInput = process.env) {
     permissions: ["activeTab", "scripting"],
     host_permissions: [...PAGE_HOST_PERMISSIONS, hostPermission],
     action: {
-      default_title: "IntelliCV",
+      default_title: "GenCV",
       default_popup: "popup.html",
       default_icon: {
         16: "intellicv_logo.png",

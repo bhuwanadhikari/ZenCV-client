@@ -2,63 +2,10 @@ import { Download } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { GenerationStatusBar } from "@/popup/components/GenerationStatusBar";
-import { cvTemplateStyles } from "./styles/cvStyles";
+import { buttonStyle, contentErrorStyle, cvTemplateStyles, disabledButtonStyle, errorStyle, previewViewportStyle, toolbarStyle } from "./styles/cvStyles";
 import { useCv } from "./hooks/useCv";
 
-const toolbarStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "flex-end",
-  alignItems: "center",
-  gap: "12px",
-};
 
-const errorStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: "12px",
-  color: "#be123c",
-};
-
-const buttonStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "8px",
-  borderRadius: "999px",
-  border: "1px solid #a5f3fc",
-  background: "#ecfeff",
-  padding: "8px 10px",
-  marginTop: "8px",
-  fontSize: "12px",
-  fontWeight: 700,
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-  position: "relative",
-  // top: "12px",
-  color: "#155e75",
-  cursor: "pointer",
-};
-
-const disabledButtonStyle: React.CSSProperties = {
-  ...buttonStyle,
-  opacity: 0.7,
-  cursor: "not-allowed",
-};
-
-const previewViewportStyle: React.CSSProperties = {
-  flex: 1,
-  minHeight: 0,
-  overflow: "auto",
-  marginTop: "8px",
-};
-
-const contentErrorStyle: React.CSSProperties = {
-  margin: 0,
-  padding: "20px",
-  borderRadius: "20px",
-  border: "1px solid #fecdd3",
-  background: "#fff1f2",
-  fontSize: "13px",
-  color: "#9f1239",
-};
 
 type CvTabBodyProps = {
   pageTitle?: string;

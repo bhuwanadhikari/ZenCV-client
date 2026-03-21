@@ -66,6 +66,13 @@ const contentErrorStyle: React.CSSProperties = {
   color: "#9f1239",
 };
 
+const coverLetterParagraphStyle: React.CSSProperties = {
+  margin: 0,
+  whiteSpace: "pre-wrap",
+  textAlign: "justify",
+  textJustify: "inter-word",
+};
+
 type CoverLetterTabBodyProps = {
   pageTitle?: string;
   pageUrl?: string;
@@ -201,7 +208,10 @@ export function CoverLetterTabBody({
           </p>
         ) : (
           <article className="rounded-[28px] border border-slate-200/80 bg-white/85 p-6 shadow-sm">
-            <p className="m-0 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+            <p
+              className="text-sm leading-7 text-slate-700"
+              style={coverLetterParagraphStyle}
+            >
               {generatedCoverLetter}
             </p>
           </article>
@@ -287,6 +297,8 @@ function buildPrintDocument(coverLetter: string, documentTitle: string) {
 
           main {
             white-space: pre-wrap;
+            text-align: justify;
+            text-justify: inter-word;
             word-break: break-word;
           }
         </style>

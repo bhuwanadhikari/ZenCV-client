@@ -1,17 +1,9 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { GENERATE_CV_ENDPOINT, getGeneratedCv } from "@/lib/api";
-import {
-  GenerationStatusBar,
-  type GenerationStatus,
-} from "@/popup/components/GenerationStatusBar";
-import { cvTemplateStyles } from "../../constants/cvStyles";
-import { useCV } from "../../hooks/useCV";
-
-const CV_PREVIEW_SKELETON_DELAY_MS = 700;
+import { GenerationStatusBar } from "@/popup/components/GenerationStatusBar";
+import { cvTemplateStyles } from "./styles/cvStyles";
+import { useCv } from "./hooks/useCv";
 
 const toolbarStyle: React.CSSProperties = {
   display: "flex",
@@ -85,86 +77,47 @@ export function CvTabBody({
   pageTextStatus = "idle",
   pageTextError = "",
 }: CvTabBodyProps) {
-  const canGenerateCv = pageTextStatus === "ready" && pageText.trim().length > 0;
   const {
-    data: generatedCvResponse,
-    error: generatedCvError,
-    isPending: isGeneratedCvPending,
-    isFetching: isGeneratedCvFetching,
-    refetch: refetchGeneratedCv,
-  } = useQuery({
-    queryKey: ["generated-cv", pageText, pageTitle, pageUrl],
-    queryFn: () =>
-      getGeneratedCv({
-        jobDescription: pageText,
-        job_url: pageUrl,
-        page_title: pageTitle,
-        storyJsonOverride: { hi: "hello" },
-      }),
-    enabled: canGenerateCv,
-  });
-  const generatedCv = generatedCvResponse?.cv;
-  const {
-    previewViewportRef,
     cvTemplateRef,
-    previewZoom,
     downloadError,
+    endpoint,
+    generatedCv,
+    generationStatus,
     handleDownloadPdf,
+    handleRetry,
     isDownloading,
-  } = useCV(pageTitleFirstWord, generatedCv?.name);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(true);
-  const isGeneratedCvLoading =
-    canGenerateCv && (isGeneratedCvPending || isGeneratedCvFetching);
-  const generationStatus: GenerationStatus = generatedCv
-    ? "success"
-    : isGeneratedCvLoading
-      ? "loading"
-      : pageTextStatus === "error"
-        ? "error"
-        : canGenerateCv
-          ? "error"
-          : "waiting";
-  const shouldShowPreviewSkeleton =
-    isPreviewLoading || (canGenerateCv && isGeneratedCvPending);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setIsPreviewLoading(false);
-    }, CV_PREVIEW_SKELETON_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
+    isRetryDisabled,
+    isRetrying,
+    previewErrorMessage,
+    previewViewportRef,
+    previewZoom,
+    shouldShowPreviewSkeleton,
+    toolbarErrorMessage,
+  } = useCv({
+    pageTitle,
+    pageUrl,
+    pageTitleFirstWord,
+    pageText,
+    pageTextStatus,
+    pageTextError,
+  });
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <GenerationStatusBar
-        endpoint={GENERATE_CV_ENDPOINT}
+        endpoint={endpoint}
         status={generationStatus}
-        onRetry={() => {
-          void refetchGeneratedCv();
-        }}
+        onRetry={handleRetry}
         retryLabel="Retry CV generation"
-        retryDisabled={!canGenerateCv || isGeneratedCvFetching}
-        isRetrying={isGeneratedCvFetching}
+        retryDisabled={isRetryDisabled}
+        isRetrying={isRetrying}
       />
 
       <div ref={previewViewportRef} style={previewViewportStyle}>
         {shouldShowPreviewSkeleton ? (
           <CvPreviewSkeleton />
-        ) : !canGenerateCv ? (
-          <p style={contentErrorStyle}>
-            {pageTextStatus === "error"
-              ? pageTextError || "Unable to read the current page text."
-              : "Read a job description first to generate the CV."}
-          </p>
         ) : !generatedCv ? (
-          <p style={contentErrorStyle}>
-            {generatedCvError instanceof Error
-              ? generatedCvError.message
-              : "The generated CV response is unavailable."}
-          </p>
+          <p style={contentErrorStyle}>{previewErrorMessage}</p>
         ) : (
           <article
             ref={cvTemplateRef}
@@ -268,10 +221,8 @@ export function CvTabBody({
       <div style={toolbarStyle}>
         {shouldShowPreviewSkeleton ? (
           <Skeleton className="h-10 w-36 rounded-full" />
-        ) : !canGenerateCv ? (
-          <p style={errorStyle}>Job description text is required before export.</p>
         ) : !generatedCv ? (
-          <p style={errorStyle}>Generate the CV from the API to enable PDF export.</p>
+          <p style={errorStyle}>{toolbarErrorMessage}</p>
         ) : (
           <>
             {downloadError ? <p style={errorStyle}>{downloadError}</p> : null}

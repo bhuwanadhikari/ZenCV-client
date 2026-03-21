@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Download } from "lucide-react";
+import { Download, Mail } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -18,6 +18,7 @@ const toolbarStyle: React.CSSProperties = {
   display: "flex",
   justifyContent: "flex-end",
   alignItems: "center",
+  flexWrap: "wrap",
   gap: "12px",
 };
 
@@ -109,7 +110,9 @@ export function CoverLetterTabBody({
   const generatedCoverLetter = generatedCoverLetterResponse?.coverLetter;
   const [isPreviewLoading, setIsPreviewLoading] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isComposingEmail, setIsComposingEmail] = useState(false);
   const [printError, setPrintError] = useState("");
+  const [composeEmailError, setComposeEmailError] = useState("");
   const isGeneratedCoverLetterLoading =
     canGenerateCoverLetter &&
     (isGeneratedCoverLetterPending || isGeneratedCoverLetterFetching);
@@ -176,6 +179,32 @@ export function CoverLetterTabBody({
     }
   }, [generatedCoverLetter, isPrinting, pageTitle]);
 
+  const handleComposeEmail = useCallback(() => {
+    if (!generatedCoverLetter || isComposingEmail) {
+      return;
+    }
+
+    setIsComposingEmail(true);
+    setComposeEmailError("");
+
+    try {
+      const composeWindow = window.open(
+        buildComposeEmailUrl(generatedCoverLetter, pageTitle),
+        "_blank",
+        "noopener,noreferrer",
+      );
+
+      if (!composeWindow) {
+        throw new Error("The email window was blocked by the browser.");
+      }
+    } catch (error) {
+      console.error(error);
+      setComposeEmailError("Unable to open Gmail compose.");
+    } finally {
+      setIsComposingEmail(false);
+    }
+  }, [generatedCoverLetter, isComposingEmail, pageTitle]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <GenerationStatusBar
@@ -227,7 +256,17 @@ export function CoverLetterTabBody({
           <p style={errorStyle}>Generate the cover letter before printing.</p>
         ) : (
           <>
+            {composeEmailError ? <p style={errorStyle}>{composeEmailError}</p> : null}
             {printError ? <p style={errorStyle}>{printError}</p> : null}
+            <button
+              type="button"
+              onClick={handleComposeEmail}
+              disabled={isComposingEmail}
+              style={isComposingEmail ? disabledButtonStyle : buttonStyle}
+            >
+              <Mail size={16} />
+              {isComposingEmail ? "Opening Gmail" : "Compose Email"}
+            </button>
             <button
               type="button"
               onClick={handlePrint}
@@ -311,6 +350,23 @@ function buildPrintDocument(coverLetter: string, documentTitle: string) {
 
 function buildSuggestedPrintTitle(pageTitle: string) {
   return pageTitle.trim() ? `${pageTitle.trim()} Cover Letter` : "Cover Letter";
+}
+
+function buildComposeEmailUrl(coverLetter: string, pageTitle: string) {
+  const composeUrl = new URL("https://mail.google.com/mail/");
+
+  composeUrl.searchParams.set("view", "cm");
+  composeUrl.searchParams.set("fs", "1");
+  composeUrl.searchParams.set("su", buildSuggestedEmailSubject(pageTitle));
+  composeUrl.searchParams.set("body", coverLetter);
+
+  return composeUrl.toString();
+}
+
+function buildSuggestedEmailSubject(pageTitle: string) {
+  return pageTitle.trim()
+    ? `Application for ${pageTitle.trim()}`
+    : "Application";
 }
 
 function escapeHtml(value: string) {

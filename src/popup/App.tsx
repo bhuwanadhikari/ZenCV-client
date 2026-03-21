@@ -11,10 +11,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { usePopupStore, type PopupTab } from "@/store/use-popup-store";
-import { CoverLetterTabBody } from "@/popup/components/CoverLetterTabBody";
-import { CvTabBody } from "@/popup/components/CvTabBody";
-import { JobDescriptionTabBody } from "@/popup/components/JobDescriptionTabBody";
-import { SettingTabBody } from "@/popup/components/SettingTabBody";
+import { CoverLetterTabBody } from "@/popup/cover-letter/CoverLetterTabBody";
+import { CvTabBody } from "@/popup/cv/CvTabBody";
+import { JobDescriptionTabBody } from "@/popup/job-description/JobDescriptionTabBody";
+import { SettingTabBody } from "@/popup/settings/SettingTabBody";
 
 const tabItems: Array<{
   value: PopupTab;

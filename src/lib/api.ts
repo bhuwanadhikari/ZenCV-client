@@ -12,9 +12,17 @@ export const API_BASE_URL = extensionEnv.apiBaseUrl;
 export const AI_MODEL_NAME = extensionEnv.aiModelName;
 
 export const GENERATE_CV_ENDPOINT = extensionEnv.generateCvEndpoint;
+export const GENERATE_COVER_LETTER_ENDPOINT =
+  extensionEnv.generateCoverLetterEndpoint;
 
 export type GeneratedCvResult = {
   cv: CvData;
+  status: number;
+  url: string;
+};
+
+export type GeneratedCoverLetterResult = {
+  coverLetter: string;
   status: number;
   url: string;
 };
@@ -47,7 +55,7 @@ export async function getGeneratedCv({
     }),
   });
   const rawBody = await response.text();
-  const parsedBody = parseJsonResponse(rawBody);
+  const parsedBody = parseJsonResponse(rawBody, "CV");
 
   if (!response.ok) {
     throw new Error(
@@ -61,6 +69,46 @@ export async function getGeneratedCv({
     status: response.status,
     url: GENERATE_CV_ENDPOINT,
   } satisfies GeneratedCvResult;
+}
+
+type GenerateCoverLetterParams = {
+  jobDescription: string;
+  job_url?: string;
+  page_title?: string;
+};
+
+export async function getGeneratedCoverLetter({
+  jobDescription,
+  job_url,
+  page_title,
+}: GenerateCoverLetterParams) {
+  const response = await fetch(GENERATE_COVER_LETTER_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      job_description: jobDescription,
+      job_url,
+      page_title,
+    }),
+  });
+  const rawBody = await response.text();
+  const parsedBody = parseJsonResponse(rawBody, "Cover letter");
+
+  if (!response.ok) {
+    throw new Error(
+      getErrorMessage(parsedBody) ||
+        `Cover letter generation failed with status ${response.status}.`,
+    );
+  }
+
+  return {
+    coverLetter: mapGeneratedCoverLetterResponse(parsedBody),
+    status: response.status,
+    url: GENERATE_COVER_LETTER_ENDPOINT,
+  } satisfies GeneratedCoverLetterResult;
 }
 
 function mapGeneratedCvResponse(payload: unknown): CvData {
@@ -96,6 +144,22 @@ function unwrapPayload(payload: unknown) {
   }
 
   return record;
+}
+
+function mapGeneratedCoverLetterResponse(payload: unknown) {
+  const root = unwrapPayload(payload);
+
+  if (!root) {
+    throw new Error("Cover letter response format is not recognized.");
+  }
+
+  const coverLetter = getFirstString(root, ["cover_letter", "coverLetter", "text"]);
+
+  if (!coverLetter) {
+    throw new Error("Cover letter response format is not recognized.");
+  }
+
+  return coverLetter;
 }
 
 function hasRecognizableCvFields(
@@ -408,7 +472,7 @@ function toStringArray(value: unknown) {
     .filter((item): item is string => Boolean(item));
 }
 
-function parseJsonResponse(rawBody: string) {
+function parseJsonResponse(rawBody: string, resourceLabel: string) {
   if (!rawBody.trim()) {
     return null;
   }
@@ -416,7 +480,7 @@ function parseJsonResponse(rawBody: string) {
   try {
     return JSON.parse(rawBody) as unknown;
   } catch {
-    throw new Error("CV generation API did not return valid JSON.");
+    throw new Error(`${resourceLabel} generation API did not return valid JSON.`);
   }
 }
 

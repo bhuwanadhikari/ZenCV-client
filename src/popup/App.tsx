@@ -16,15 +16,6 @@ import { CvTabBody } from "@/popup/components/CvTabBody";
 import { JobDescriptionTabBody } from "@/popup/components/JobDescriptionTabBody";
 import { SettingTabBody } from "@/popup/components/SettingTabBody";
 
-const samplePdfByTab: Partial<
-  Record<PopupTab, { src: string; title: string }>
-> = {
-  "cover-letter": {
-    src: "/samples/cover-letter-sample.pdf#toolbar=0&navpanes=0&scrollbar=0",
-    title: "Cover letter sample PDF",
-  },
-};
-
 const tabItems: Array<{
   value: PopupTab;
   label: string;
@@ -62,7 +53,6 @@ export default function App() {
   const setActiveTab = usePopupStore((state) => state.setActiveTab);
   const activeItem =
     tabItems.find(({ value }) => value === activeTab) ?? tabItems[0];
-  const activeSamplePdf = samplePdfByTab[activeItem.value];
   const [pageText, setPageText] = useState("");
   const [pageTitle, setPageTitle] = useState("");
   const [pageUrl, setPageUrl] = useState("");
@@ -127,11 +117,7 @@ export default function App() {
         setPageUrl("");
         setPageTitleSnippet("");
         setPageTextStatus("error");
-        setPageTextError(
-          error instanceof Error
-            ? error.message
-            : "Unable to read the current page."
-        );
+        setPageTextError(formatPageTextError(error));
       }
     };
 
@@ -235,10 +221,13 @@ export default function App() {
                   pageTextStatus={pageTextStatus}
                   pageTextError={pageTextError}
                 />
-              ) : activeSamplePdf ? (
+              ) : activeItem.value === "cover-letter" ? (
                 <CoverLetterTabBody
-                  src={activeSamplePdf.src}
-                  title={activeSamplePdf.title}
+                  pageTitle={pageTitle}
+                  pageUrl={pageUrl}
+                  pageText={pageText}
+                  pageTextStatus={pageTextStatus}
+                  pageTextError={pageTextError}
                 />
               ) : activeItem.value !== "job-description" ? (
                 <SettingTabBody />
@@ -253,4 +242,15 @@ export default function App() {
 
 function extractFirstTwoWords(title: string) {
   return title.trim().match(/\S+(?:\s+\S+)?/)?.[0] ?? "";
+}
+
+function formatPageTextError(error: unknown) {
+  const fallbackMessage = "Unable to read the current page.";
+  const message = error instanceof Error ? error.message : fallbackMessage;
+
+  if (message.includes("Cannot access contents of the page")) {
+    return "This page could not be read. Reload the extension after rebuilding it, and note that Chrome blocks restricted pages like chrome://, the Chrome Web Store, and other extension pages.";
+  }
+
+  return message;
 }

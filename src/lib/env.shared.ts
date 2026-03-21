@@ -14,6 +14,7 @@ export function getExtensionEnv(env: ExtensionEnvInput) {
     apiBaseUrl,
     aiModelName,
     generateCvEndpoint: `${apiBaseUrl}/api/cv/generate`,
+    generateCoverLetterEndpoint: `${apiBaseUrl}/api/cover-letter/generate`,
     hostPermission: buildHostPermission(apiBaseUrl),
   };
 }

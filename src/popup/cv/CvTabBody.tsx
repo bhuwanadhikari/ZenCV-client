@@ -2,10 +2,13 @@ import { Download } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { GenerationStatusBar } from "@/popup/components/GenerationStatusBar";
-import { buttonStyle, contentErrorStyle, cvTemplateStyles, disabledButtonStyle, errorStyle, previewViewportStyle, toolbarStyle } from "./styles/cvStyles";
+import {
+  contentErrorStyle,
+  cvTemplateStyles,
+  errorStyle,
+  previewViewportStyle,
+} from "./styles/cvStyles";
 import { useCv } from "./hooks/useCv";
-
-
 
 type CvTabBodyProps = {
   pageTitle?: string;
@@ -56,9 +59,27 @@ export function CvTabBody({
         status={generationStatus}
         onRetry={handleRetry}
         retryLabel="Retry CV generation"
+        extraAction={
+          generatedCv ? (
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              aria-label={isDownloading ? "Opening Print" : "Save as PDF"}
+              title={isDownloading ? "Opening Print" : "Save as PDF"}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 text-cyan-800 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download size={14} />
+              <span className="sr-only">
+                {isDownloading ? "Opening Print" : "Save as PDF"}
+              </span>
+            </button>
+          ) : null
+        }
         retryDisabled={isRetryDisabled}
         isRetrying={isRetrying}
       />
+      {downloadError ? <p style={errorStyle}>{downloadError}</p> : null}
 
       <div ref={previewViewportRef} style={previewViewportStyle}>
         {shouldShowPreviewSkeleton ? (
@@ -164,27 +185,9 @@ export function CvTabBody({
           </article>
         )}
       </div>
-
-      <div style={toolbarStyle}>
-        {shouldShowPreviewSkeleton ? (
-          <Skeleton className="h-10 w-36 rounded-full" />
-        ) : !generatedCv ? (
-          <p style={errorStyle}>{toolbarErrorMessage}</p>
-        ) : (
-          <>
-            {downloadError ? <p style={errorStyle}>{downloadError}</p> : null}
-            <button
-              type="button"
-              onClick={handleDownloadPdf}
-              disabled={isDownloading}
-              style={isDownloading ? disabledButtonStyle : buttonStyle}
-            >
-              <Download size={16} />
-              {isDownloading ? "Opening Print" : "Save as PDF"}
-            </button>
-          </>
-        )}
-      </div>
+      {!shouldShowPreviewSkeleton && !generatedCv ? (
+        <p style={errorStyle}>{toolbarErrorMessage}</p>
+      ) : null}
     </div>
   );
 }

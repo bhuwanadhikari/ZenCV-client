@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Mail } from "lucide-react";
 
@@ -11,43 +11,10 @@ import {
   GenerationStatusBar,
   type GenerationStatus,
 } from "@/popup/components/GenerationStatusBar";
-
-const COVER_LETTER_SKELETON_DELAY_MS = 700;
-
-const toolbarStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "flex-end",
-  alignItems: "center",
-  flexWrap: "wrap",
-  gap: "12px",
-};
-
 const errorStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "12px",
   color: "#be123c",
-};
-
-const buttonStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "8px",
-  borderRadius: "999px",
-  border: "1px solid #a5f3fc",
-  background: "#ecfeff",
-  padding: "8px 10px",
-  fontSize: "12px",
-  fontWeight: 700,
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-  color: "#155e75",
-  cursor: "pointer",
-};
-
-const disabledButtonStyle: React.CSSProperties = {
-  ...buttonStyle,
-  opacity: 0.7,
-  cursor: "not-allowed",
 };
 
 const previewViewportStyle: React.CSSProperties = {
@@ -73,6 +40,9 @@ const coverLetterParagraphStyle: React.CSSProperties = {
   textAlign: "justify",
   textJustify: "inter-word",
 };
+
+const iconActionButtonClassName =
+  "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 text-cyan-800 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-50";
 
 type CoverLetterTabBodyProps = {
   pageTitle?: string;
@@ -108,7 +78,6 @@ export function CoverLetterTabBody({
     enabled: canGenerateCoverLetter,
   });
   const generatedCoverLetter = generatedCoverLetterResponse?.coverLetter;
-  const [isPreviewLoading, setIsPreviewLoading] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isComposingEmail, setIsComposingEmail] = useState(false);
   const [printError, setPrintError] = useState("");
@@ -125,19 +94,7 @@ export function CoverLetterTabBody({
         : canGenerateCoverLetter
           ? "error"
           : "waiting";
-  const shouldShowPreviewSkeleton =
-    isPreviewLoading ||
-    (canGenerateCoverLetter && isGeneratedCoverLetterPending);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setIsPreviewLoading(false);
-    }, COVER_LETTER_SKELETON_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
+  const shouldShowPreviewSkeleton = isGeneratedCoverLetterLoading;
 
   const handlePrint = useCallback(async () => {
     if (!generatedCoverLetter || isPrinting) {
@@ -214,11 +171,45 @@ export function CoverLetterTabBody({
           void refetchGeneratedCoverLetter();
         }}
         retryLabel="Retry cover letter generation"
+        extraAction={
+          generatedCoverLetter ? (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleComposeEmail}
+                disabled={isComposingEmail}
+                aria-label={isComposingEmail ? "Opening Gmail" : "Compose Email"}
+                title={isComposingEmail ? "Opening Gmail" : "Compose Email"}
+                className={iconActionButtonClassName}
+              >
+                <Mail size={14} />
+                <span className="sr-only">
+                  {isComposingEmail ? "Opening Gmail" : "Compose Email"}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={handlePrint}
+                disabled={isPrinting}
+                aria-label={isPrinting ? "Opening Print" : "Save as PDF"}
+                title={isPrinting ? "Opening Print" : "Save as PDF"}
+                className={iconActionButtonClassName}
+              >
+                <Download size={14} />
+                <span className="sr-only">
+                  {isPrinting ? "Opening Print" : "Save as PDF"}
+                </span>
+              </button>
+            </div>
+          ) : null
+        }
         retryDisabled={
           !canGenerateCoverLetter || isGeneratedCoverLetterFetching
         }
         isRetrying={isGeneratedCoverLetterFetching}
       />
+      {composeEmailError ? <p style={errorStyle}>{composeEmailError}</p> : null}
+      {printError ? <p style={errorStyle}>{printError}</p> : null}
 
       <div style={previewViewportStyle}>
         {shouldShowPreviewSkeleton ? (
@@ -244,39 +235,6 @@ export function CoverLetterTabBody({
               {generatedCoverLetter}
             </p>
           </article>
-        )}
-      </div>
-
-      <div style={toolbarStyle}>
-        {shouldShowPreviewSkeleton ? (
-          <Skeleton className="h-10 w-28 rounded-full" />
-        ) : !canGenerateCoverLetter ? (
-          <p style={errorStyle}>Job description text is required before printing.</p>
-        ) : !generatedCoverLetter ? (
-          <p style={errorStyle}>Generate the cover letter before printing.</p>
-        ) : (
-          <>
-            {composeEmailError ? <p style={errorStyle}>{composeEmailError}</p> : null}
-            {printError ? <p style={errorStyle}>{printError}</p> : null}
-            <button
-              type="button"
-              onClick={handleComposeEmail}
-              disabled={isComposingEmail}
-              style={isComposingEmail ? disabledButtonStyle : buttonStyle}
-            >
-              <Mail size={16} />
-              {isComposingEmail ? "Opening Gmail" : "Compose Email"}
-            </button>
-            <button
-              type="button"
-              onClick={handlePrint}
-              disabled={isPrinting}
-              style={isPrinting ? disabledButtonStyle : buttonStyle}
-            >
-              <Download size={16} />
-              {isPrinting ? "Opening Print" : "Print"}
-            </button>
-          </>
         )}
       </div>
     </div>

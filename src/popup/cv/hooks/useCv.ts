@@ -6,8 +6,6 @@ import type { GenerationStatus } from "@/popup/components/GenerationStatusBar";
 import { A4_PAGE_WIDTH_PX } from "@/constants/constants";
 import { cvTemplateStyles } from "../styles/cvStyles";
 
-const CV_PREVIEW_SKELETON_DELAY_MS = 700;
-
 type UseCvParams = {
   pageTitle?: string;
   pageUrl?: string;
@@ -31,7 +29,6 @@ export function useCv({
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState("");
   const [previewZoom, setPreviewZoom] = useState(1);
-  const [isPreviewLoading, setIsPreviewLoading] = useState(true);
   const {
     data: generatedCvResponse,
     error: generatedCvError,
@@ -61,8 +58,7 @@ export function useCv({
         : canGenerateCv
           ? "error"
           : "waiting";
-  const shouldShowPreviewSkeleton =
-    isPreviewLoading || (canGenerateCv && isGeneratedCvPending);
+  const shouldShowPreviewSkeleton = isGeneratedCvLoading;
   const previewErrorMessage = !canGenerateCv
     ? pageTextStatus === "error"
       ? pageTextError || "Unable to read the current page text."
@@ -77,16 +73,6 @@ export function useCv({
     : !generatedCv
       ? "Generate the CV from the API to enable PDF export."
       : "";
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setIsPreviewLoading(false);
-    }, CV_PREVIEW_SKELETON_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
 
   useEffect(() => {
     const viewport = previewViewportRef.current;

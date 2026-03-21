@@ -234,15 +234,6 @@ export const cvTemplateStyles = `
   }
 `;
 
-
-
-export const toolbarStyle: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "flex-end",
-  alignItems: "center",
-  gap: "12px",
-};
-
 export const errorStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "12px",
@@ -257,13 +248,10 @@ export const buttonStyle: React.CSSProperties = {
   border: "1px solid #a5f3fc",
   background: "#ecfeff",
   padding: "8px 10px",
-  marginTop: "8px",
   fontSize: "12px",
   fontWeight: 700,
   letterSpacing: "0.14em",
   textTransform: "uppercase",
-  position: "relative",
-  // top: "12px",
   color: "#155e75",
   cursor: "pointer",
 };

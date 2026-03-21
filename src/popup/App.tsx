@@ -200,7 +200,7 @@ export default function App() {
             className="flex h-full min-h-0 flex-col overflow-hidden"
           >
             <div className="shrink-0">
-              <h2 className="mt-0 text-2xl font-semibold">{activeItem.title}</h2>
+              <h2 className="mt-0 text-xl font-semibold mb-1">{activeItem.title}</h2>
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col">

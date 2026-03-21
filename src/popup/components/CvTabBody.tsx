@@ -4,6 +4,10 @@ import { Download } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { GENERATE_CV_ENDPOINT, getGeneratedCv } from "@/lib/api";
+import {
+  GenerationStatusBar,
+  type GenerationStatus,
+} from "@/popup/components/GenerationStatusBar";
 import { cvTemplateStyles } from "../../constants/cvStyles";
 import { useCV } from "../../hooks/useCV";
 
@@ -19,52 +23,6 @@ const toolbarStyle: React.CSSProperties = {
 const errorStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "12px",
-  color: "#be123c",
-};
-
-const statusCardStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-  gap: "12px",
-  borderRadius: "20px",
-  border: "1px solid #dbeafe",
-  background: "#f8fbff",
-  padding: "14px 16px",
-};
-
-const statusTextStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: "12px",
-  color: "#334155",
-};
-
-const statusLabelStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  borderRadius: "999px",
-  padding: "4px 8px",
-  fontSize: "11px",
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-};
-
-const statusSuccessStyle: React.CSSProperties = {
-  ...statusLabelStyle,
-  background: "#dcfce7",
-  color: "#166534",
-};
-
-const statusLoadingStyle: React.CSSProperties = {
-  ...statusLabelStyle,
-  background: "#e0f2fe",
-  color: "#075985",
-};
-
-const statusErrorLabelStyle: React.CSSProperties = {
-  ...statusLabelStyle,
-  background: "#ffe4e6",
   color: "#be123c",
 };
 
@@ -89,20 +47,6 @@ const buttonStyle: React.CSSProperties = {
 
 const disabledButtonStyle: React.CSSProperties = {
   ...buttonStyle,
-  opacity: 0.7,
-  cursor: "not-allowed",
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  ...buttonStyle,
-  marginTop: 0,
-  padding: "6px 10px",
-  fontSize: "11px",
-  letterSpacing: "0.1em",
-};
-
-const disabledSecondaryButtonStyle: React.CSSProperties = {
-  ...secondaryButtonStyle,
   opacity: 0.7,
   cursor: "not-allowed",
 };
@@ -169,6 +113,17 @@ export function CvTabBody({
     isDownloading,
   } = useCV(pageTitleFirstWord, generatedCv?.name);
   const [isPreviewLoading, setIsPreviewLoading] = useState(true);
+  const isGeneratedCvLoading =
+    canGenerateCv && (isGeneratedCvPending || isGeneratedCvFetching);
+  const generationStatus: GenerationStatus = generatedCv
+    ? "success"
+    : isGeneratedCvLoading
+      ? "loading"
+      : pageTextStatus === "error"
+        ? "error"
+        : canGenerateCv
+          ? "error"
+          : "waiting";
   const shouldShowPreviewSkeleton =
     isPreviewLoading || (canGenerateCv && isGeneratedCvPending);
 
@@ -184,62 +139,16 @@ export function CvTabBody({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div style={statusCardStyle}>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span
-              style={
-                generatedCv
-                  ? statusSuccessStyle
-                  : canGenerateCv &&
-                      (isGeneratedCvPending || isGeneratedCvFetching)
-                    ? statusLoadingStyle
-                    : statusErrorLabelStyle
-              }
-            >
-              {generatedCv
-                ? "CV Ready"
-                : canGenerateCv && (isGeneratedCvPending || isGeneratedCvFetching)
-                  ? "Generating"
-                  : canGenerateCv
-                    ? "Failed"
-                    : "Waiting"}
-            </span>
-            <p style={statusTextStyle}>POST {GENERATE_CV_ENDPOINT}</p>
-          </div>
-
-          <p style={statusTextStyle}>
-            {generatedCv
-              ? `CV loaded from the API with status ${generatedCvResponse.status}.`
-              : canGenerateCv && (isGeneratedCvPending || isGeneratedCvFetching)
-                ? "Requesting generated CV data from the local API."
-                : pageTextStatus === "loading"
-                  ? "Reading the current page text before generating the CV."
-                  : pageTextStatus === "error"
-                    ? pageTextError || "Unable to read the current page text."
-                    : !canGenerateCv
-                      ? "Waiting for job description text before generating the CV."
-                : generatedCvError instanceof Error
-                  ? generatedCvError.message
-                  : "Unable to generate the CV from the local API."}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            void refetchGeneratedCv();
-          }}
-          disabled={!canGenerateCv || isGeneratedCvFetching}
-          style={
-            !canGenerateCv || isGeneratedCvFetching
-              ? disabledSecondaryButtonStyle
-              : secondaryButtonStyle
-          }
-        >
-          {isGeneratedCvFetching ? "Retrying" : "Retry"}
-        </button>
-      </div>
+      <GenerationStatusBar
+        endpoint={GENERATE_CV_ENDPOINT}
+        status={generationStatus}
+        onRetry={() => {
+          void refetchGeneratedCv();
+        }}
+        retryLabel="Retry CV generation"
+        retryDisabled={!canGenerateCv || isGeneratedCvFetching}
+        isRetrying={isGeneratedCvFetching}
+      />
 
       <div ref={previewViewportRef} style={previewViewportStyle}>
         {shouldShowPreviewSkeleton ? (

@@ -7,6 +7,10 @@ import {
   GENERATE_COVER_LETTER_ENDPOINT,
   getGeneratedCoverLetter,
 } from "@/lib/api";
+import {
+  GenerationStatusBar,
+  type GenerationStatus,
+} from "@/popup/components/GenerationStatusBar";
 
 const COVER_LETTER_SKELETON_DELAY_MS = 700;
 
@@ -21,74 +25,6 @@ const errorStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "12px",
   color: "#be123c",
-};
-
-const statusCardStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-  gap: "12px",
-  borderRadius: "20px",
-  border: "1px solid #dbeafe",
-  background: "#f8fbff",
-  padding: "14px 16px",
-};
-
-const statusTextStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: "12px",
-  color: "#334155",
-};
-
-const statusLabelStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  borderRadius: "999px",
-  padding: "4px 8px",
-  fontSize: "11px",
-  fontWeight: 700,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-};
-
-const statusSuccessStyle: React.CSSProperties = {
-  ...statusLabelStyle,
-  background: "#dcfce7",
-  color: "#166534",
-};
-
-const statusLoadingStyle: React.CSSProperties = {
-  ...statusLabelStyle,
-  background: "#e0f2fe",
-  color: "#075985",
-};
-
-const statusErrorLabelStyle: React.CSSProperties = {
-  ...statusLabelStyle,
-  background: "#ffe4e6",
-  color: "#be123c",
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "8px",
-  borderRadius: "999px",
-  border: "1px solid #a5f3fc",
-  background: "#ecfeff",
-  padding: "6px 10px",
-  fontSize: "11px",
-  fontWeight: 700,
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
-  color: "#155e75",
-  cursor: "pointer",
-};
-
-const disabledSecondaryButtonStyle: React.CSSProperties = {
-  ...secondaryButtonStyle,
-  opacity: 0.7,
-  cursor: "not-allowed",
 };
 
 const buttonStyle: React.CSSProperties = {
@@ -167,6 +103,18 @@ export function CoverLetterTabBody({
   const [isPreviewLoading, setIsPreviewLoading] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
   const [printError, setPrintError] = useState("");
+  const isGeneratedCoverLetterLoading =
+    canGenerateCoverLetter &&
+    (isGeneratedCoverLetterPending || isGeneratedCoverLetterFetching);
+  const generationStatus: GenerationStatus = generatedCoverLetter
+    ? "success"
+    : isGeneratedCoverLetterLoading
+      ? "loading"
+      : pageTextStatus === "error"
+        ? "error"
+        : canGenerateCoverLetter
+          ? "error"
+          : "waiting";
   const shouldShowPreviewSkeleton =
     isPreviewLoading ||
     (canGenerateCoverLetter && isGeneratedCoverLetterPending);
@@ -223,67 +171,18 @@ export function CoverLetterTabBody({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
-      <div style={statusCardStyle}>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <span
-              style={
-                generatedCoverLetter
-                  ? statusSuccessStyle
-                  : canGenerateCoverLetter &&
-                      (isGeneratedCoverLetterPending ||
-                        isGeneratedCoverLetterFetching)
-                    ? statusLoadingStyle
-                    : statusErrorLabelStyle
-              }
-            >
-              {generatedCoverLetter
-                ? "Cover Letter Ready"
-                : canGenerateCoverLetter &&
-                    (isGeneratedCoverLetterPending ||
-                      isGeneratedCoverLetterFetching)
-                  ? "Generating"
-                  : canGenerateCoverLetter
-                    ? "Failed"
-                    : "Waiting"}
-            </span>
-            <p style={statusTextStyle}>POST {GENERATE_COVER_LETTER_ENDPOINT}</p>
-          </div>
-
-          <p style={statusTextStyle}>
-            {generatedCoverLetter
-              ? `Cover letter loaded from the API with status ${generatedCoverLetterResponse.status}.`
-              : canGenerateCoverLetter &&
-                  (isGeneratedCoverLetterPending ||
-                    isGeneratedCoverLetterFetching)
-                ? "Requesting cover letter text from the local API."
-                : pageTextStatus === "loading"
-                  ? "Reading the current page text before generating the cover letter."
-                  : pageTextStatus === "error"
-                    ? pageTextError || "Unable to read the current page text."
-                    : !canGenerateCoverLetter
-                      ? "Waiting for job description text before generating the cover letter."
-                      : generatedCoverLetterError instanceof Error
-                        ? generatedCoverLetterError.message
-                        : "Unable to generate the cover letter from the local API."}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            void refetchGeneratedCoverLetter();
-          }}
-          disabled={!canGenerateCoverLetter || isGeneratedCoverLetterFetching}
-          style={
-            !canGenerateCoverLetter || isGeneratedCoverLetterFetching
-              ? disabledSecondaryButtonStyle
-              : secondaryButtonStyle
-          }
-        >
-          {isGeneratedCoverLetterFetching ? "Retrying" : "Retry"}
-        </button>
-      </div>
+      <GenerationStatusBar
+        endpoint={GENERATE_COVER_LETTER_ENDPOINT}
+        status={generationStatus}
+        onRetry={() => {
+          void refetchGeneratedCoverLetter();
+        }}
+        retryLabel="Retry cover letter generation"
+        retryDisabled={
+          !canGenerateCoverLetter || isGeneratedCoverLetterFetching
+        }
+        isRetrying={isGeneratedCoverLetterFetching}
+      />
 
       <div style={previewViewportStyle}>
         {shouldShowPreviewSkeleton ? (

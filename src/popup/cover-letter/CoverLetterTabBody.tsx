@@ -3,14 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { Download, Mail } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  GENERATE_COVER_LETTER_ENDPOINT,
-  getGeneratedCoverLetter,
-} from "@/lib/api";
+import { API_BASE_URL, getGeneratedCoverLetter } from "@/lib/api";
 import {
   GenerationStatusBar,
   type GenerationStatus,
 } from "@/popup/components/GenerationStatusBar";
+import { usePopupStore } from "@/store/use-popup-store";
 const errorStyle: React.CSSProperties = {
   margin: 0,
   fontSize: "12px",
@@ -44,23 +42,16 @@ const coverLetterParagraphStyle: React.CSSProperties = {
 const iconActionButtonClassName =
   "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-200 bg-cyan-50 text-cyan-800 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-50";
 
-type CoverLetterTabBodyProps = {
-  pageTitle?: string;
-  pageUrl?: string;
-  pageText?: string;
-  pageTextStatus?: "idle" | "loading" | "ready" | "error";
-  pageTextError?: string;
-};
-
-export function CoverLetterTabBody({
-  pageTitle = "",
-  pageUrl = "",
-  pageText = "",
-  pageTextStatus = "idle",
-  pageTextError = "",
-}: CoverLetterTabBodyProps) {
+export function CoverLetterTabBody() {
+  const jobDescription = usePopupStore((state) => state.jobDescription);
+  const jobDescriptionStatus = usePopupStore(
+    (state) => state.jobDescriptionStatus,
+  );
+  const jobDescriptionError = usePopupStore((state) => state.jobDescriptionError);
+  const jobPageTitle = usePopupStore((state) => state.jobPageTitle);
+  const jobPageUrl = usePopupStore((state) => state.jobPageUrl);
   const canGenerateCoverLetter =
-    pageTextStatus === "ready" && pageText.trim().length > 0;
+    jobDescriptionStatus === "ready" && jobDescription.trim().length > 0;
   const {
     data: generatedCoverLetterResponse,
     error: generatedCoverLetterError,
@@ -68,12 +59,12 @@ export function CoverLetterTabBody({
     isFetching: isGeneratedCoverLetterFetching,
     refetch: refetchGeneratedCoverLetter,
   } = useQuery({
-    queryKey: ["generated-cover-letter", pageText, pageTitle, pageUrl],
+    queryKey: ["generated-cover-letter", jobDescription, jobPageTitle, jobPageUrl],
     queryFn: () =>
       getGeneratedCoverLetter({
-        jobDescription: pageText,
-        job_url: pageUrl,
-        page_title: pageTitle,
+        jobDescription,
+        job_url: jobPageUrl,
+        page_title: jobPageTitle,
       }),
     enabled: canGenerateCoverLetter,
   });
@@ -89,7 +80,7 @@ export function CoverLetterTabBody({
     ? "success"
     : isGeneratedCoverLetterLoading
       ? "loading"
-      : pageTextStatus === "error"
+      : jobDescriptionStatus === "error"
         ? "error"
         : canGenerateCoverLetter
           ? "error"
@@ -113,7 +104,10 @@ export function CoverLetterTabBody({
 
       printWindow.document.open();
       printWindow.document.write(
-        buildPrintDocument(generatedCoverLetter, buildSuggestedPrintTitle(pageTitle)),
+        buildPrintDocument(
+          generatedCoverLetter,
+          buildSuggestedPrintTitle(jobPageTitle),
+        ),
       );
       printWindow.document.close();
 
@@ -134,7 +128,7 @@ export function CoverLetterTabBody({
     } finally {
       setIsPrinting(false);
     }
-  }, [generatedCoverLetter, isPrinting, pageTitle]);
+  }, [generatedCoverLetter, isPrinting, jobPageTitle]);
 
   const handleComposeEmail = useCallback(() => {
     if (!generatedCoverLetter || isComposingEmail) {
@@ -146,7 +140,7 @@ export function CoverLetterTabBody({
 
     try {
       const composeWindow = window.open(
-        buildComposeEmailUrl(generatedCoverLetter, pageTitle),
+        buildComposeEmailUrl(generatedCoverLetter, jobPageTitle),
         "_blank",
         "noopener,noreferrer",
       );
@@ -160,12 +154,12 @@ export function CoverLetterTabBody({
     } finally {
       setIsComposingEmail(false);
     }
-  }, [generatedCoverLetter, isComposingEmail, pageTitle]);
+  }, [generatedCoverLetter, isComposingEmail, jobPageTitle]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <GenerationStatusBar
-        endpoint={GENERATE_COVER_LETTER_ENDPOINT}
+        endpoint={`${API_BASE_URL}/api/cover-letter/generate`}
         status={generationStatus}
         onRetry={() => {
           void refetchGeneratedCoverLetter();
@@ -216,9 +210,11 @@ export function CoverLetterTabBody({
           <CoverLetterPreviewSkeleton />
         ) : !canGenerateCoverLetter ? (
           <p style={contentErrorStyle}>
-            {pageTextStatus === "error"
-              ? pageTextError || "Unable to read the current page text."
-              : "Read a job description first to generate the cover letter."}
+            {jobDescriptionStatus === "error"
+              ? jobDescriptionError || "Unable to process the current page HTML."
+              : jobDescriptionStatus === "loading"
+                ? "Processing the current page HTML into a job description..."
+                : "Process a job description first to generate the cover letter."}
           </p>
         ) : !generatedCoverLetter ? (
           <p style={contentErrorStyle}>

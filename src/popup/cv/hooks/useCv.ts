@@ -1,29 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { GENERATE_CV_ENDPOINT, getGeneratedCv } from "@/lib/api";
+import { API_BASE_URL, getGeneratedCv } from "@/lib/api";
 import type { GenerationStatus } from "@/popup/components/GenerationStatusBar";
+import { usePopupStore } from "@/store/use-popup-store";
 import { A4_PAGE_WIDTH_PX } from "@/constants/constants";
 import { cvTemplateStyles } from "../styles/cvStyles";
 
-type UseCvParams = {
-  pageTitle?: string;
-  pageUrl?: string;
-  pageTitleFirstWord?: string;
-  pageText?: string;
-  pageTextStatus?: "idle" | "loading" | "ready" | "error";
-  pageTextError?: string;
-};
-
-export function useCv({
-  pageTitle = "",
-  pageUrl = "",
-  pageTitleFirstWord = "",
-  pageText = "",
-  pageTextStatus = "idle",
-  pageTextError = "",
-}: UseCvParams) {
-  const canGenerateCv = pageTextStatus === "ready" && pageText.trim().length > 0;
+export function useCv() {
+  const jobDescription = usePopupStore((state) => state.jobDescription);
+  const jobDescriptionStatus = usePopupStore(
+    (state) => state.jobDescriptionStatus,
+  );
+  const jobDescriptionError = usePopupStore((state) => state.jobDescriptionError);
+  const jobPageTitle = usePopupStore((state) => state.jobPageTitle);
+  const jobPageUrl = usePopupStore((state) => state.jobPageUrl);
+  const canGenerateCv =
+    jobDescriptionStatus === "ready" && jobDescription.trim().length > 0;
+  const pageTitleFirstWord = getTitleSnippet(jobPageTitle);
   const cvTemplateRef = useRef<HTMLElement | null>(null);
   const previewViewportRef = useRef<HTMLDivElement | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -36,12 +30,12 @@ export function useCv({
     isFetching: isGeneratedCvFetching,
     refetch: refetchGeneratedCv,
   } = useQuery({
-    queryKey: ["generated-cv", pageText, pageTitle, pageUrl],
+    queryKey: ["generated-cv", jobDescription, jobPageTitle, jobPageUrl],
     queryFn: () =>
       getGeneratedCv({
-        jobDescription: pageText,
-        job_url: pageUrl,
-        page_title: pageTitle,
+        jobDescription,
+        job_url: jobPageUrl,
+        page_title: jobPageTitle,
         storyJsonOverride: { hi: "hello" },
       }),
     enabled: canGenerateCv,
@@ -53,23 +47,27 @@ export function useCv({
     ? "success"
     : isGeneratedCvLoading
       ? "loading"
-      : pageTextStatus === "error"
+      : jobDescriptionStatus === "error"
         ? "error"
         : canGenerateCv
           ? "error"
           : "waiting";
   const shouldShowPreviewSkeleton = isGeneratedCvLoading;
   const previewErrorMessage = !canGenerateCv
-    ? pageTextStatus === "error"
-      ? pageTextError || "Unable to read the current page text."
-      : "Read a job description first to generate the CV."
+    ? jobDescriptionStatus === "error"
+      ? jobDescriptionError || "Unable to process the current page HTML."
+      : jobDescriptionStatus === "loading"
+        ? "Processing the current page HTML into a job description..."
+        : "Process a job description first to generate the CV."
     : !generatedCv
       ? generatedCvError instanceof Error
         ? generatedCvError.message
         : "The generated CV response is unavailable."
       : "";
   const toolbarErrorMessage = !canGenerateCv
-    ? "Job description text is required before export."
+    ? jobDescriptionStatus === "loading"
+      ? "Wait for the job description to finish processing."
+      : "Job description text is required before export."
     : !generatedCv
       ? "Generate the CV from the API to enable PDF export."
       : "";
@@ -168,7 +166,7 @@ export function useCv({
   return {
     cvTemplateRef,
     downloadError,
-    endpoint: GENERATE_CV_ENDPOINT,
+    endpoint: `${API_BASE_URL}/api/cv/generate`,
     generatedCv,
     generationStatus,
     handleDownloadPdf,
@@ -226,4 +224,8 @@ function escapeHtml(value: string) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function getTitleSnippet(title: string) {
+  return title.trim().match(/\S+(?:\s+\S+)?/)?.[0] ?? "";
 }

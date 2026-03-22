@@ -10,23 +10,7 @@ import {
 } from "./styles/cvStyles";
 import { useCv } from "./hooks/useCv";
 
-type CvTabBodyProps = {
-  pageTitle?: string;
-  pageUrl?: string;
-  pageTitleFirstWord?: string;
-  pageText?: string;
-  pageTextStatus?: "idle" | "loading" | "ready" | "error";
-  pageTextError?: string;
-};
-
-export function CvTabBody({
-  pageTitle = "",
-  pageUrl = "",
-  pageTitleFirstWord = "",
-  pageText = "",
-  pageTextStatus = "idle",
-  pageTextError = "",
-}: CvTabBodyProps) {
+export function CvTabBody() {
   const {
     cvTemplateRef,
     downloadError,
@@ -43,14 +27,7 @@ export function CvTabBody({
     previewZoom,
     shouldShowPreviewSkeleton,
     toolbarErrorMessage,
-  } = useCv({
-    pageTitle,
-    pageUrl,
-    pageTitleFirstWord,
-    pageText,
-    pageTextStatus,
-    pageTextError,
-  });
+  } = useCv();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">

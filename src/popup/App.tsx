@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ClipboardList,
   FileText,
@@ -53,80 +53,7 @@ export default function App() {
   const setActiveTab = usePopupStore((state) => state.setActiveTab);
   const activeItem =
     tabItems.find(({ value }) => value === activeTab) ?? tabItems[0];
-  const [pageText, setPageText] = useState("");
-  const [pageTitle, setPageTitle] = useState("");
-  const [pageUrl, setPageUrl] = useState("");
-  const [pageTitleSnippet, setPageTitleSnippet] = useState("");
-  const [pageTextStatus, setPageTextStatus] = useState<
-    "idle" | "loading" | "ready" | "error"
-  >("idle");
-  const [pageTextError, setPageTextError] = useState("");
   const [isTabBarCollapsed, setIsTabBarCollapsed] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadPageText = async () => {
-      setPageTextStatus("loading");
-      setPageTextError("");
-
-      try {
-        if (!chrome?.tabs?.query) {
-          throw new Error(
-            "Chrome tab APIs are unavailable. Open this UI from the installed extension instead of the regular Vite web page."
-          );
-        }
-
-        const [activeTab] = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        });
-
-        if (!activeTab?.id) {
-          throw new Error("No active tab found.");
-        }
-
-        setPageTitle(activeTab.title ?? "");
-        setPageUrl(activeTab.url ?? "");
-        setPageTitleSnippet(extractFirstTwoWords(activeTab.title ?? ""));
-
-        if (!chrome?.scripting?.executeScript) {
-          throw new Error(
-            "The Chrome scripting API is unavailable in this context. Reload the built extension and make sure the manifest includes the 'scripting' permission."
-          );
-        }
-
-        const [{ result }] = await chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
-          func: () => document.body?.innerText?.trim() ?? "",
-        });
-
-        if (cancelled) {
-          return;
-        }
-
-        setPageText(result || "No readable text was found on this page.");
-        setPageTextStatus("ready");
-      } catch (error) {
-        if (cancelled) {
-          return;
-        }
-
-        setPageText("");
-        setPageTitle("");
-        setPageUrl("");
-        setPageTitleSnippet("");
-        setPageTextStatus("error");
-        setPageTextError(formatPageTextError(error));
-      }
-    };
-
-    void loadPageText();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <main className="flex h-full w-full overflow-hidden p-4">
@@ -204,31 +131,12 @@ export default function App() {
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col">
-              {activeItem.value === "job-description" ? (
-                <JobDescriptionTabBody
-                  pageText={pageText}
-                  pageTextStatus={pageTextStatus}
-                  pageTextError={pageTextError}
-                />
-              ) : null}
+              {activeItem.value === "job-description" ? <JobDescriptionTabBody /> : null}
 
               {activeItem.value === "cv" ? (
-                <CvTabBody
-                  pageTitle={pageTitle}
-                  pageUrl={pageUrl}
-                  pageTitleFirstWord={pageTitleSnippet}
-                  pageText={pageText}
-                  pageTextStatus={pageTextStatus}
-                  pageTextError={pageTextError}
-                />
+                <CvTabBody />
               ) : activeItem.value === "cover-letter" ? (
-                <CoverLetterTabBody
-                  pageTitle={pageTitle}
-                  pageUrl={pageUrl}
-                  pageText={pageText}
-                  pageTextStatus={pageTextStatus}
-                  pageTextError={pageTextError}
-                />
+                <CoverLetterTabBody />
               ) : activeItem.value !== "job-description" ? (
                 <SettingTabBody />
               ) : null}
@@ -238,19 +146,4 @@ export default function App() {
       </Tabs>
     </main>
   );
-}
-
-function extractFirstTwoWords(title: string) {
-  return title.trim().match(/\S+(?:\s+\S+)?/)?.[0] ?? "";
-}
-
-function formatPageTextError(error: unknown) {
-  const fallbackMessage = "Unable to read the current page.";
-  const message = error instanceof Error ? error.message : fallbackMessage;
-
-  if (message.includes("Cannot access contents of the page")) {
-    return "This page could not be read. Reload the extension after rebuilding it, and note that Chrome blocks restricted pages like chrome://, the Chrome Web Store, and other extension pages.";
-  }
-
-  return message;
 }

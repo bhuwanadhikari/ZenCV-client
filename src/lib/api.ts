@@ -4,16 +4,29 @@ import type {
   CvEntry,
   CvSection,
 } from "@/constants/cvData";
-import { getExtensionEnv } from "@/lib/env.shared";
 
-const extensionEnv = getExtensionEnv(import.meta.env);
+const DEFAULT_API_BASE_URL = "http://localhost:8000";
+const DEFAULT_AI_MODEL_NAME = "gpt-4.1-mini";
 
-export const API_BASE_URL = extensionEnv.apiBaseUrl;
-export const AI_MODEL_NAME = extensionEnv.aiModelName;
+export const API_BASE_URL = normalizeApiBaseUrl(
+  import.meta.env.VITE_API_BASE_URL,
+);
+export const AI_MODEL_NAME = normalizeAiModelName(
+  import.meta.env.VITE_AI_MODEL_NAME,
+);
 
-export const GENERATE_CV_ENDPOINT = extensionEnv.generateCvEndpoint;
-export const GENERATE_COVER_LETTER_ENDPOINT =
-  extensionEnv.generateCoverLetterEndpoint;
+export type ProcessedJobDescriptionResult = {
+  jobDescription: string;
+  pageTitle: string;
+  pageUrl: string;
+  status: number;
+  url: string;
+};
+
+type ProcessedJobDescriptionResponse = {
+  processed_html: string;
+  processed_text: string;
+};
 
 export type GeneratedCvResult = {
   cv: CvData;
@@ -26,6 +39,69 @@ export type GeneratedCoverLetterResult = {
   status: number;
   url: string;
 };
+
+function normalizeApiBaseUrl(value?: string) {
+  const trimmedValue = value?.trim();
+
+  if (!trimmedValue) {
+    return DEFAULT_API_BASE_URL;
+  }
+
+  return trimmedValue.replace(/\/+$/, "");
+}
+
+function normalizeAiModelName(value?: string) {
+  const trimmedValue = value?.trim();
+  return trimmedValue || DEFAULT_AI_MODEL_NAME;
+}
+
+type ProcessJobDescriptionParams = {
+  pageHtml: string;
+  job_url?: string;
+  page_title?: string;
+};
+
+export async function getProcessedJobDescription({
+  pageHtml,
+  job_url,
+  page_title,
+}: ProcessJobDescriptionParams) {
+  const response = await fetch(`${API_BASE_URL}/api/job-description/process`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      raw_html: pageHtml,
+      job_url,
+    }),
+  });
+  const rawBody = await response.text();
+  const parsedBody = parseJsonResponse(
+    rawBody,
+    "Job description",
+  ) as ProcessedJobDescriptionResponse | null;
+
+  if (!response.ok) {
+    throw new Error(
+      getErrorMessage(parsedBody) ||
+        `Job description processing failed with status ${response.status}.`,
+    );
+  }
+
+  if (!parsedBody?.processed_text) {
+    throw new Error("Job description response format is not recognized.");
+  }
+
+  return {
+    jobDescription: parsedBody.processed_text,
+    pageTitle: page_title ?? "",
+    pageUrl: job_url ?? "",
+    status: response.status,
+    url: `${API_BASE_URL}/api/job-description/process`,
+  } satisfies ProcessedJobDescriptionResult;
+}
 
 type GenerateCvParams = {
   jobDescription: string;
@@ -40,7 +116,7 @@ export async function getGeneratedCv({
   page_title,
   storyJsonOverride,
 }: GenerateCvParams) {
-  const response = await fetch(GENERATE_CV_ENDPOINT, {
+  const response = await fetch(`${API_BASE_URL}/api/cv/generate`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -67,7 +143,7 @@ export async function getGeneratedCv({
   return {
     cv: mapGeneratedCvResponse(parsedBody),
     status: response.status,
-    url: GENERATE_CV_ENDPOINT,
+    url: `${API_BASE_URL}/api/cv/generate`,
   } satisfies GeneratedCvResult;
 }
 
@@ -82,7 +158,7 @@ export async function getGeneratedCoverLetter({
   job_url,
   page_title,
 }: GenerateCoverLetterParams) {
-  const response = await fetch(GENERATE_COVER_LETTER_ENDPOINT, {
+  const response = await fetch(`${API_BASE_URL}/api/cover-letter/generate`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -107,7 +183,7 @@ export async function getGeneratedCoverLetter({
   return {
     coverLetter: mapGeneratedCoverLetterResponse(parsedBody),
     status: response.status,
-    url: GENERATE_COVER_LETTER_ENDPOINT,
+    url: `${API_BASE_URL}/api/cover-letter/generate`,
   } satisfies GeneratedCoverLetterResult;
 }
 
@@ -153,7 +229,11 @@ function mapGeneratedCoverLetterResponse(payload: unknown) {
     throw new Error("Cover letter response format is not recognized.");
   }
 
-  const coverLetter = getFirstString(root, ["cover_letter", "coverLetter", "text"]);
+  const coverLetter = getFirstString(root, [
+    "cover_letter",
+    "coverLetter",
+    "text",
+  ]);
 
   if (!coverLetter) {
     throw new Error("Cover letter response format is not recognized.");
@@ -241,8 +321,12 @@ function mapProfile(root: Record<string, unknown>) {
   return {
     label: "Profile",
     summary:
-      getFirstString(root, ["summary", "profileSummary", "about", "objective"]) ??
-      "",
+      getFirstString(root, [
+        "summary",
+        "profileSummary",
+        "about",
+        "objective",
+      ]) ?? "",
   };
 }
 
@@ -261,7 +345,9 @@ function mapSkillGroups(root: Record<string, unknown>) {
             : null;
         }
 
-        const items = toStringArray(record.items ?? record.skills ?? record.values);
+        const items = toStringArray(
+          record.items ?? record.skills ?? record.values,
+        );
 
         if (items.length === 0) {
           return null;
@@ -304,9 +390,7 @@ function mapSections(root: Record<string, unknown>) {
   const sections = root.sections;
 
   if (Array.isArray(sections)) {
-    const normalized = sections
-      .map(mapSection)
-      .filter(isPresent);
+    const normalized = sections.map(mapSection).filter(isPresent);
 
     if (normalized.length > 0) {
       return normalized;
@@ -375,7 +459,9 @@ function mapEntry(value: unknown) {
 
   return {
     dateRange: getFirstString(record, ["dateRange", "dates", "duration"]) ?? "",
-    title: getFirstString(record, ["title", "role", "position", "degree", "name"]) ?? "",
+    title:
+      getFirstString(record, ["title", "role", "position", "degree", "name"]) ??
+      "",
     organization:
       getFirstString(record, [
         "organization",
@@ -447,10 +533,7 @@ function buildExternalHref(value?: string) {
   return /^https?:\/\//.test(value) ? value : `https://${value}`;
 }
 
-function getFirstString(
-  record: Record<string, unknown>,
-  keys: string[],
-) {
+function getFirstString(record: Record<string, unknown>, keys: string[]) {
   for (const key of keys) {
     const value = toStringValue(record[key]);
 
@@ -480,7 +563,9 @@ function parseJsonResponse(rawBody: string, resourceLabel: string) {
   try {
     return JSON.parse(rawBody) as unknown;
   } catch {
-    throw new Error(`${resourceLabel} generation API did not return valid JSON.`);
+    throw new Error(
+      `${resourceLabel} generation API did not return valid JSON.`,
+    );
   }
 }
 

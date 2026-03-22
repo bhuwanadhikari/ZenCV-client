@@ -34,7 +34,7 @@ export const cvTemplateStyles = `
 
   @page {
     size: A4;
-    margin: 0;
+    margin: 15mm 0 15mm 0;
   }
 
   :root {
@@ -227,8 +227,8 @@ export const cvTemplateStyles = `
 
     .cv-document__page {
       width: 210mm;
-      min-height: 297mm;
-      padding: 10mm 18mm;
+      min-height: 285mm;
+      padding: 0 18mm;
       box-shadow: none;
     }
   }

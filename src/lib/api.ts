@@ -4,6 +4,7 @@ import type {
   CvEntry,
   CvSection,
 } from "@/constants/cvData";
+import { normalizePageTitle } from "@/lib/page-title";
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
 const DEFAULT_AI_MODEL_NAME = "gpt-4.1-mini";
@@ -96,7 +97,7 @@ export async function getProcessedJobDescription({
 
   return {
     jobDescription: parsedBody.processed_text,
-    pageTitle: page_title ?? "",
+    pageTitle: normalizePageTitle(page_title),
     pageUrl: job_url ?? "",
     status: response.status,
     url: `${API_BASE_URL}/api/job-description/process`,

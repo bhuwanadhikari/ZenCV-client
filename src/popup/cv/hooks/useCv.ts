@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { API_BASE_URL, getGeneratedCv } from "@/lib/api";
+import { buildPrintDocumentTitle } from "@/lib/page-title";
 import type { GenerationStatus } from "@/popup/components/GenerationStatusBar";
 import { usePopupStore } from "@/store/use-popup-store";
 import { A4_PAGE_WIDTH_PX } from "@/constants/constants";
@@ -17,7 +18,6 @@ export function useCv() {
   const jobPageUrl = usePopupStore((state) => state.jobPageUrl);
   const canGenerateCv =
     jobDescriptionStatus === "ready" && jobDescription.trim().length > 0;
-  const pageTitleFirstWord = getTitleSnippet(jobPageTitle);
   const cvTemplateRef = useRef<HTMLElement | null>(null);
   const previewViewportRef = useRef<HTMLDivElement | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -112,7 +112,7 @@ export function useCv() {
     try {
       const printHtml = buildPrintDocument(
         cvTemplateRef.current.outerHTML,
-        buildSuggestedPdfTitle(pageTitleFirstWord, generatedCv.name),
+        buildPrintDocumentTitle("cv", jobPageTitle),
       );
       const printWindow = window.open("", "_blank");
 
@@ -161,7 +161,7 @@ export function useCv() {
     } finally {
       setIsDownloading(false);
     }
-  }, [generatedCv, isDownloading, pageTitleFirstWord]);
+  }, [generatedCv, isDownloading, jobPageTitle]);
 
   return {
     cvTemplateRef,
@@ -210,22 +210,10 @@ function buildPrintDocument(templateMarkup: string, documentTitle: string) {
     </html>`;
 }
 
-function buildSuggestedPdfTitle(pageTitleFirstWord: string, cvOwnerName: string) {
-  const ownerName = cvOwnerName.trim() || "Candidate";
-
-  return pageTitleFirstWord
-    ? `${ownerName} CV ${pageTitleFirstWord}`
-    : `${ownerName} CV`;
-}
-
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-function getTitleSnippet(title: string) {
-  return title.trim().match(/\S+(?:\s+\S+)?/)?.[0] ?? "";
 }

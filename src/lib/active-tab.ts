@@ -1,3 +1,5 @@
+import { normalizePageTitle } from "@/lib/page-title";
+
 type GetActiveTabPageContextOptions = {
   includeHtml?: boolean;
 };
@@ -5,7 +7,6 @@ type GetActiveTabPageContextOptions = {
 export type ActiveTabPageContext = {
   pageHtml: string;
   pageTitle: string;
-  pageTitleSnippet: string;
   pageUrl: string;
 };
 
@@ -27,15 +28,13 @@ export async function getActiveTabPageContext({
     throw new Error("No active tab found.");
   }
 
-  const pageTitle = activeTab.title ?? "";
+  const pageTitle = normalizePageTitle(activeTab.title);
   const pageUrl = activeTab.url ?? "";
-  const pageTitleSnippet = extractFirstTwoWords(pageTitle);
 
   if (!includeHtml) {
     return {
       pageHtml: "",
       pageTitle,
-      pageTitleSnippet,
       pageUrl,
     };
   }
@@ -63,7 +62,6 @@ export async function getActiveTabPageContext({
   return {
     pageHtml,
     pageTitle,
-    pageTitleSnippet,
     pageUrl,
   };
 }
@@ -77,8 +75,4 @@ export function formatPageHtmlError(error: unknown) {
   }
 
   return message;
-}
-
-function extractFirstTwoWords(title: string) {
-  return title.trim().match(/\S+(?:\s+\S+)?/)?.[0] ?? "";
 }

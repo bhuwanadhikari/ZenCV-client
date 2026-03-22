@@ -4,6 +4,7 @@ import { Download, Mail } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { API_BASE_URL, getGeneratedCoverLetter } from "@/lib/api";
+import { buildPrintDocumentTitle } from "@/lib/page-title";
 import {
   GenerationStatusBar,
   type GenerationStatus,
@@ -106,7 +107,7 @@ export function CoverLetterTabBody() {
       printWindow.document.write(
         buildPrintDocument(
           generatedCoverLetter,
-          buildSuggestedPrintTitle(jobPageTitle),
+          buildPrintDocumentTitle("cover", jobPageTitle),
         ),
       );
       printWindow.document.close();
@@ -300,10 +301,6 @@ function buildPrintDocument(coverLetter: string, documentTitle: string) {
         <main>${escapeHtml(coverLetter)}</main>
       </body>
     </html>`;
-}
-
-function buildSuggestedPrintTitle(pageTitle: string) {
-  return pageTitle.trim() ? `${pageTitle.trim()} Cover Letter` : "Cover Letter";
 }
 
 function buildComposeEmailUrl(coverLetter: string, pageTitle: string) {

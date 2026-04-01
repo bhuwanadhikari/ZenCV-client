@@ -6,7 +6,6 @@ import { buildPrintDocumentTitle } from "@/lib/page-title";
 import type { GenerationStatus } from "@/popup/components/GenerationStatusBar";
 import { usePopupStore } from "@/store/use-popup-store";
 import { A4_PAGE_WIDTH_PX } from "@/constants/constants";
-import { cvTemplateStyles } from "../styles/cvStyles";
 
 export function useCv() {
   const jobDescription = usePopupStore((state) => state.jobDescription);
@@ -200,8 +199,6 @@ function buildPrintDocument(templateMarkup: string, documentTitle: string) {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
-
-          ${cvTemplateStyles}
         </style>
       </head>
       <body>

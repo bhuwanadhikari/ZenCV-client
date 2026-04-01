@@ -9,3 +9,4 @@ TODOS
 - fix the print pdf, add margin bottom, 
 - add projects in the cv variants
 - do autodownload or close the browser tab after download
+- api bar in jd ali ramro banau

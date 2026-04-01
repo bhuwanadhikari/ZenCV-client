@@ -1,16 +1,20 @@
+import { useState } from "react";
 import { Download } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { GenerationStatusBar } from "@/popup/components/GenerationStatusBar";
+import { cvTemplates, type CvTemplateId } from "./cv-templates/cvTemplates";
 import {
   contentErrorStyle,
-  cvTemplateStyles,
   errorStyle,
   previewViewportStyle,
 } from "./styles/cvStyles";
 import { useCv } from "./hooks/useCv";
 
 export function CvTabBody() {
+  const [selectedTemplateId, setSelectedTemplateId] =
+    useState<CvTemplateId>("template-1");
   const {
     cvTemplateRef,
     downloadError,
@@ -28,6 +32,10 @@ export function CvTabBody() {
     shouldShowPreviewSkeleton,
     toolbarErrorMessage,
   } = useCv();
+  const selectedTemplate =
+    cvTemplates.find((template) => template.id === selectedTemplateId) ??
+    cvTemplates[0];
+  const SelectedTemplateComponent = selectedTemplate.component;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -58,189 +66,45 @@ export function CvTabBody() {
       />
       {downloadError ? <p style={errorStyle}>{downloadError}</p> : null}
 
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        {cvTemplates.map((template) => (
+          <button
+            key={template.id}
+            type="button"
+            onClick={() => setSelectedTemplateId(template.id)}
+            className={cn(
+              "inline-flex shrink-0 flex-col items-start rounded-xl text-[11px] border px-2 py-1 text-left transition",
+              template.id === selectedTemplateId
+                ? "border-cyan-300 bg-cyan-50 text-cyan-900 shadow-sm"
+                : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300 hover:bg-slate-50",
+            )}
+            aria-pressed={template.id === selectedTemplateId}
+            title={template.description}
+          >
+            <span className="text-[9px] font-semibold  uppercase tracking-[0.2em]">
+              {template.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <div ref={previewViewportRef} style={previewViewportStyle}>
         {shouldShowPreviewSkeleton ? (
           <CvPreviewSkeleton />
         ) : !generatedCv ? (
           <p style={contentErrorStyle}>{previewErrorMessage}</p>
         ) : (
-          <article
+          <SelectedTemplateComponent
             ref={cvTemplateRef}
-            className="cv-document cv-document--preview"
-            style={
-              {
-                "--cv-preview-zoom": String(previewZoom),
-              } as React.CSSProperties
-            }
-          >
-            <style>{cvTemplateStyles}</style>
-
-            <div className="cv-document__page">
-              <h1 className="cv-document__name">{generatedCv.name}</h1>
-              <div className="cv-document__role">{generatedCv.role}</div>
-              {generatedCv.contactLines.map((line, lineIndex) => (
-                <div
-                  key={`contact-line-${lineIndex}`}
-                  className="cv-document__contact-line"
-                >
-                  {line.map((item, itemIndex) => (
-                    <span key={`${item.label ?? item.value}-${itemIndex}`}>
-                      {itemIndex > 0 ? " | " : null}
-                      {item.label ? `${item.label}: ` : null}
-                      {item.href ? (
-                        <a href={item.href}>{item.value}</a>
-                      ) : (
-                        item.value
-                      )}
-                    </span>
-                  ))}
-                </div>
-              ))}
-              <hr className="cv-document__divider" />
-
-              <p className="cv-document__profile">
-                <strong>{generatedCv.profile.label}:</strong>{" "}
-                {generatedCv.profile.summary}
-              </p>
-
-              <div className="cv-document__section-title">Skills</div>
-              {generatedCv.skillGroups.map((skillGroup) => (
-                <p key={skillGroup.label} className="cv-document__skill-line">
-                  <strong>{skillGroup.label}:</strong>{" "}
-                  {skillGroup.items.join(", ")}
-                </p>
-              ))}
-
-              {generatedCv.sections.map((section) => (
-                <div key={section.title}>
-                  <div className="cv-document__section-title">
-                    {section.title}
-                  </div>
-
-                  {section.entries.map((entry) => {
-                    const hasDateRange = Boolean(entry.dateRange);
-                    const hasTitle = Boolean(entry.title);
-                    const hasOrganizationName = Boolean(
-                      entry.organization.name,
-                    );
-                    const hasOrganizationAddress = Boolean(
-                      entry.organization.address,
-                    );
-
-                    return (
-                      <div
-                        key={`${entry.title}-${entry.dateRange}`}
-                        className="cv-document__entry"
-                      >
-                        <p className="cv-document__header">
-                          <span className="cv-document__header-main">
-                            {hasDateRange ? (
-                              <span className="cv-document__date">
-                                {entry.dateRange}
-                              </span>
-                            ) : null}
-                            {hasDateRange && hasTitle ? " | " : null}
-                            {hasTitle ? (
-                              <span className="cv-document__title">
-                                {entry.title}
-                              </span>
-                            ) : null}
-                          </span>
-                          {entry.resource ? (
-                            <span className="cv-document__resource">
-                              {entry.resource.url ? (
-                                <a href={entry.resource.url}>
-                                  {entry.resource.placeholder}
-                                </a>
-                              ) : (
-                                entry.resource.placeholder
-                              )}
-                              <LinkResourceIcon />
-                            </span>
-                          ) : null}
-                        </p>
-                        {entry.stack && entry.stack.length > 0 ? (
-                          <p className="cv-document__stack">
-                            [{entry.stack.join(", ")}]
-                          </p>
-                        ) : null}
-                        <p className="cv-document__org-line">
-                          <span className="cv-document__org-main">
-                            {hasOrganizationName ? (
-                              entry.organization.url ? (
-                                <a href={entry.organization.url}>
-                                  <em>{entry.organization.name}</em>
-                                </a>
-                              ) : (
-                                <em>{entry.organization.name}</em>
-                              )
-                            ) : null}
-                            {hasOrganizationName && hasOrganizationAddress
-                              ? " | "
-                              : null}
-                            {hasOrganizationAddress
-                              ? entry.organization.address
-                              : null}
-                          </span>
-                        </p>
-                        <ul className="cv-document__list">
-                          {entry.bullets.map((bullet, bulletIndex) => (
-                            <li key={`${entry.title}-bullet-${bulletIndex}`}>
-                              <span
-                                className="cv-document__bullet"
-                                aria-hidden="true"
-                              >
-                                •
-                              </span>
-                              <span className="cv-document__bullet-text">
-                                {bullet}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </article>
+            cv={generatedCv}
+            previewZoom={previewZoom}
+          />
         )}
       </div>
       {!shouldShowPreviewSkeleton && !generatedCv ? (
         <p style={errorStyle}>{toolbarErrorMessage}</p>
       ) : null}
     </div>
-  );
-}
-
-function LinkResourceIcon() {
-  return (
-    <svg
-      className="cv-document__resource-icon"
-      viewBox="0 0 16 16"
-      width="13"
-      height="13"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M6 4.5H4.75A2.25 2.25 0 0 0 2.5 6.75v4.5a2.25 2.25 0 0 0 2.25 2.25h4.5a2.25 2.25 0 0 0 2.25-2.25V10"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8 3.5h4.5V8M12.25 3.75 7 9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }
 

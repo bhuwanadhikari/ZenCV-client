@@ -1,4 +1,8 @@
+import { getExtensionEnv } from "./env.shared";
+
 export type PrintDocumentKind = "cover" | "cv";
+
+const { fileNamePrefix } = getExtensionEnv(import.meta.env);
 
 export function normalizePageTitle(value?: string | null) {
   return value?.trim() ?? "";
@@ -10,9 +14,11 @@ export function buildPrintDocumentTitle(
 ) {
   const titleSuffix = formatPageTitleForFilename(pageTitle);
   const documentPrefix =
-    kind === "cv" ? "bhuwan_adhikari_cv" : "bhuwan_adhikari_cover";
+    kind === "cv" ? `${fileNamePrefix}_cv` : `${fileNamePrefix}_cover`;
 
-  return titleSuffix ? `${documentPrefix}_${titleSuffix.split("_").slice(0, 4).join("_")}` : documentPrefix;
+  return titleSuffix
+    ? `${documentPrefix}_${titleSuffix.split("_").slice(0, 6).join("_")}`
+    : documentPrefix;
 }
 
 function formatPageTitleForFilename(pageTitle: string) {

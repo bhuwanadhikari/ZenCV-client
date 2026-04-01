@@ -8,10 +8,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Local environment files
-.env
-.env.*
-!.env.example
+# # Local environment files
+# .env
+# .env.*
+# !.env.example
 
 .vite/
 coverage/

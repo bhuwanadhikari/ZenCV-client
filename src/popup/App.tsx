@@ -78,7 +78,7 @@ export default function App() {
             {!isTabBarCollapsed ? (
               <div className="min-w-0">
                 <p className="m-0 text-xs font-semibold uppercase tracking-[0.28em] text-primary">
-                  GenCV
+                  AgileCV
                 </p>
               </div>
             ) : null}

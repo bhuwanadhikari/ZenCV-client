@@ -1,6 +1,6 @@
-# GenCV
+# AgileCV
 
-GenCV is a Chrome extension that reads the active job page and generates a tailored CV and cover letter inside the popup.
+AgileCV is a Chrome extension that reads the active job page and generates a tailored CV and cover letter inside the popup.
 
 ## What It Does
 

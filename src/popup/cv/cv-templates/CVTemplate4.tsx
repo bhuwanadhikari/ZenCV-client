@@ -1,8 +1,8 @@
 import { forwardRef } from "react";
-import kollektifRegularUrl from "@/fonts/Kollektif.ttf";
-import kollektifBoldUrl from "@/fonts/Kollektif-Bold.ttf";
-import kollektifItalicUrl from "@/fonts/Kollektif-Italic.ttf";
-import kollektifBoldItalicUrl from "@/fonts/Kollektif-BoldItalic.ttf";
+import latoRegularUrl from "@/fonts/lato/Lato-Regular.ttf";
+import latoBoldUrl from "@/fonts/lato/Lato-Bold.ttf";
+import latoItalicUrl from "@/fonts/lato/Lato-Italic.ttf";
+import latoBoldItalicUrl from "@/fonts/lato/Lato-BoldItalic.ttf";
 
 import type { CvContactItem, CvData, CvEntry } from "@/constants/cvData";
 
@@ -268,29 +268,29 @@ function LinkResourceIcon() {
 
 const styles = `
   @font-face {
-    font-family: "Kollektif";
-    src: url("${kollektifRegularUrl}") format("truetype");
+    font-family: "Lato";
+    src: url("${latoRegularUrl}") format("truetype");
     font-weight: 400;
     font-style: normal;
   }
 
   @font-face {
-    font-family: "Kollektif";
-    src: url("${kollektifBoldUrl}") format("truetype");
+    font-family: "Lato";
+    src: url("${latoBoldUrl}") format("truetype");
     font-weight: 700;
     font-style: normal;
   }
 
   @font-face {
-    font-family: "Kollektif";
-    src: url("${kollektifItalicUrl}") format("truetype");
+    font-family: "Lato";
+    src: url("${latoItalicUrl}") format("truetype");
     font-weight: 400;
     font-style: italic;
   }
 
   @font-face {
-    font-family: "Kollektif";
-    src: url("${kollektifBoldItalicUrl}") format("truetype");
+    font-family: "Lato";
+    src: url("${latoBoldItalicUrl}") format("truetype");
     font-weight: 700;
     font-style: italic;
   }
@@ -310,7 +310,7 @@ const styles = `
     padding: 0;
     background: transparent;
     color: #111827;
-    font-family: "Kollektif", Arial, Helvetica, sans-serif;
+    font-family: "Lato", Arial, Helvetica, sans-serif;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

@@ -113,49 +113,94 @@ export function CvTabBody() {
 
               {generatedCv.sections.map((section) => (
                 <div key={section.title}>
-                  <div className="cv-document__section-title">{section.title}</div>
+                  <div className="cv-document__section-title">
+                    {section.title}
+                  </div>
 
-                  {section.entries.map((entry) => (
-                    <div
-                      key={`${entry.title}-${entry.dateRange}`}
-                      className="cv-document__entry"
-                    >
-                      <p className="cv-document__header">
-                        <span className="cv-document__date">
-                          {entry.dateRange}
-                        </span>{" "}
-                        |{" "}
-                        <span className="cv-document__title">{entry.title}</span>
-                      </p>
-                      {entry.stack && entry.stack.length > 0 ? (
-                        <p className="cv-document__stack">
-                          [{entry.stack.join(", ")}]
+                  {section.entries.map((entry) => {
+                    const hasDateRange = Boolean(entry.dateRange);
+                    const hasTitle = Boolean(entry.title);
+                    const hasOrganizationName = Boolean(
+                      entry.organization.name,
+                    );
+                    const hasOrganizationAddress = Boolean(
+                      entry.organization.address,
+                    );
+
+                    return (
+                      <div
+                        key={`${entry.title}-${entry.dateRange}`}
+                        className="cv-document__entry"
+                      >
+                        <p className="cv-document__header">
+                          <span className="cv-document__header-main">
+                            {hasDateRange ? (
+                              <span className="cv-document__date">
+                                {entry.dateRange}
+                              </span>
+                            ) : null}
+                            {hasDateRange && hasTitle ? " | " : null}
+                            {hasTitle ? (
+                              <span className="cv-document__title">
+                                {entry.title}
+                              </span>
+                            ) : null}
+                          </span>
+                          {entry.resource ? (
+                            <span className="cv-document__resource">
+                              {entry.resource.url ? (
+                                <a href={entry.resource.url}>
+                                  {entry.resource.placeholder}
+                                </a>
+                              ) : (
+                                entry.resource.placeholder
+                              )}
+                              <LinkResourceIcon />
+                            </span>
+                          ) : null}
                         </p>
-                      ) : null}
-                      <p className="cv-document__org-line">
-                        {entry.link ? (
-                          <a href={entry.link}>
-                            <em>{entry.organization}</em>
-                          </a>
-                        ) : (
-                          <em>{entry.organization}</em>
-                        )}{" "}
-                        | {entry.location}
-                      </p>
-                      <ul className="cv-document__list">
-                        {entry.bullets.map((bullet, bulletIndex) => (
-                          <li key={`${entry.title}-bullet-${bulletIndex}`}>
-                            <span className="cv-document__bullet" aria-hidden="true">
-                              •
-                            </span>
-                            <span className="cv-document__bullet-text">
-                              {bullet}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                        {entry.stack && entry.stack.length > 0 ? (
+                          <p className="cv-document__stack">
+                            [{entry.stack.join(", ")}]
+                          </p>
+                        ) : null}
+                        <p className="cv-document__org-line">
+                          <span className="cv-document__org-main">
+                            {hasOrganizationName ? (
+                              entry.organization.url ? (
+                                <a href={entry.organization.url}>
+                                  <em>{entry.organization.name}</em>
+                                </a>
+                              ) : (
+                                <em>{entry.organization.name}</em>
+                              )
+                            ) : null}
+                            {hasOrganizationName && hasOrganizationAddress
+                              ? " | "
+                              : null}
+                            {hasOrganizationAddress
+                              ? entry.organization.address
+                              : null}
+                          </span>
+                        </p>
+                        <ul className="cv-document__list">
+                          {entry.bullets.map((bullet, bulletIndex) => (
+                            <li key={`${entry.title}-bullet-${bulletIndex}`}>
+                              <span
+                                className="cv-document__bullet"
+                                aria-hidden="true"
+                              >
+                                •
+                              </span>
+                              <span className="cv-document__bullet-text">
+                                {bullet}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
@@ -166,6 +211,36 @@ export function CvTabBody() {
         <p style={errorStyle}>{toolbarErrorMessage}</p>
       ) : null}
     </div>
+  );
+}
+
+function LinkResourceIcon() {
+  return (
+    <svg
+      className="cv-document__resource-icon"
+      viewBox="0 0 16 16"
+      width="13"
+      height="13"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M6 4.5H4.75A2.25 2.25 0 0 0 2.5 6.75v4.5a2.25 2.25 0 0 0 2.25 2.25h4.5a2.25 2.25 0 0 0 2.25-2.25V10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 3.5h4.5V8M12.25 3.75 7 9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

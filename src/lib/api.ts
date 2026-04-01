@@ -447,6 +447,8 @@ function mapEntry(value: unknown) {
     return null;
   }
 
+  const organizationRecord = asRecord(record.organization);
+  const resourceRecord = asRecord(record.resource);
   const bullets = toStringArray(
     record.bullets ??
       record.highlights ??
@@ -457,29 +459,54 @@ function mapEntry(value: unknown) {
   const stack = toStringArray(
     record.stack ?? record.technologies ?? record.techStack ?? record.skills,
   );
+  const organizationName =
+    (organizationRecord &&
+      getFirstString(organizationRecord, ["name", "title", "label"])) ??
+    getFirstString(record, ["organization", "company", "institution", "school"]) ??
+    "";
+  const organizationUrl = buildExternalHref(
+    (organizationRecord &&
+      getFirstString(organizationRecord, ["url", "href", "link", "website"])) ??
+      getFirstString(record, [
+        "link",
+        "href",
+        "url",
+        "organizationLink",
+        "companyLink",
+        "institutionLink",
+        "website",
+      ]),
+  );
+  const organizationAddress =
+    (organizationRecord &&
+      getFirstString(organizationRecord, ["address", "location", "place"])) ??
+    getFirstString(record, ["location", "place"]) ??
+    "";
+  const resourcePlaceholder = resourceRecord
+    ? getFirstString(resourceRecord, ["placeholder", "label", "title", "name"])
+    : undefined;
+  const resourceUrl = buildExternalHref(
+    resourceRecord
+      ? getFirstString(resourceRecord, ["url", "href", "link", "website"])
+      : undefined,
+  );
 
   return {
     dateRange: getFirstString(record, ["dateRange", "dates", "duration"]) ?? "",
     title:
       getFirstString(record, ["title", "role", "position", "degree", "name"]) ??
       "",
-    organization:
-      getFirstString(record, [
-        "organization",
-        "company",
-        "institution",
-        "school",
-      ]) ?? "",
-    link: getFirstString(record, [
-      "link",
-      "href",
-      "url",
-      "organizationLink",
-      "companyLink",
-      "institutionLink",
-      "website",
-    ]),
-    location: getFirstString(record, ["location", "place"]) ?? "",
+    organization: {
+      name: organizationName,
+      url: organizationUrl,
+      address: organizationAddress,
+    },
+    resource: resourcePlaceholder
+      ? {
+          placeholder: resourcePlaceholder,
+          url: resourceUrl,
+        }
+      : undefined,
     bullets,
     stack: stack.length > 0 ? stack : undefined,
   } satisfies CvEntry;

@@ -4,12 +4,22 @@ export type CvContactItem = {
   href?: string;
 };
 
+export type CvOrganization = {
+  name: string;
+  url?: string;
+  address?: string;
+};
+
+export type CvResource = {
+  placeholder: string;
+  url?: string;
+};
+
 export type CvEntry = {
   dateRange: string;
   title: string;
-  organization: string;
-  link?: string;
-  location: string;
+  organization: CvOrganization;
+  resource?: CvResource;
   bullets: string[];
   stack?: string[];
 };

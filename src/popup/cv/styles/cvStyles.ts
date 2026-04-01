@@ -149,8 +149,17 @@ export const cvTemplateStyles = `
 
   .cv-document__header {
     margin: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
     font-size: var(--font-size-body);
     line-height: 1.4;
+  }
+
+  .cv-document__header-main {
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   .cv-document__date {
@@ -169,6 +178,10 @@ export const cvTemplateStyles = `
     line-height: 1.3;
   }
 
+  .cv-document__org-main {
+    min-width: 0;
+  }
+
   .cv-document__org-line em {
     font-style: italic;
     text-decoration: underline;
@@ -177,6 +190,25 @@ export const cvTemplateStyles = `
   .cv-document__org-line a {
     color: inherit;
     text-decoration: none;
+  }
+
+  .cv-document__resource {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    margin-left: auto;
+    white-space: nowrap;
+    color: #0d4fb3;
+  }
+
+  .cv-document__resource a {
+    color: inherit;
+    text-decoration: underline;
+  }
+
+  .cv-document__resource-icon {
+    flex-shrink: 0;
   }
 
   .cv-document__list {

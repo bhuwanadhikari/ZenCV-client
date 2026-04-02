@@ -13,8 +13,9 @@ import {
 import { useCv } from "./hooks/useCv";
 
 export function CvTabBody() {
-  const [selectedTemplateId, setSelectedTemplateId] =
-    useState<CvTemplateId>("template-1");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<CvTemplateId>(
+    cvTemplates[0]?.id ?? "template-2",
+  );
   const {
     cvTemplateRef,
     downloadError,

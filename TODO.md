@@ -10,3 +10,4 @@ TODOS
 - add projects in the cv variants
 - do autodownload or close the browser tab after download
 - api bar in jd ali ramro banau
+- cv template 1 lai make it try catch xa vane use garni natra nagarni, and make a template 1 ko copy in simpler version too so this can be used directly

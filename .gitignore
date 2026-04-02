@@ -17,3 +17,4 @@ pnpm-debug.log*
 coverage/
 *.tsbuildinfo
 src/popup/cv/cv-templates/CVTemplate1.tsx
+src/popup/cv/cv-templates/CVTemplate7.tsx

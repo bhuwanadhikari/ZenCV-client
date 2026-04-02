@@ -2,6 +2,8 @@
 
 ZenCV is a Chrome extension that reads the active tab, turns the page HTML into a cleaned job description, and then generates a tailored CV and cover letter inside the popup.
 
+Backend Repo: https://github.com/bhuwanadhikari/ZenCV-server
+
 ## How To Run Locally
 
 1. Copy the example file and adjust values as needed:
@@ -114,4 +116,4 @@ Reference file:
 - Changing the API origin requires rebuilding so the manifest host permissions stay in sync
 - Export uses the browser print flow rather than generating PDF files directly
 
-Open work is tracked in [TODO.md](./TODO.md).
+Open work is tracked in [TODO.md](https://github.com/bhuwanadhikari/ZenCV-client/blob/main/TODO.md).

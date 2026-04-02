@@ -1,6 +1,6 @@
-# AgileCV
+# ZenCV
 
-AgileCV is a Chrome extension that reads the active tab, turns the page HTML into a cleaned job description, and then generates a tailored CV and cover letter inside the popup.
+ZenCV is a Chrome extension that reads the active tab, turns the page HTML into a cleaned job description, and then generates a tailored CV and cover letter inside the popup.
 
 ## How To Run Locally
 
@@ -71,11 +71,11 @@ By default it points to `http://localhost:8000`.
 
 To add a new CV template:
 
-1. Create a new template component file in [src/popup/cv/cv-templates](/Users/bhuwan/Documents/projects/intellicv/intellicv-browser/src/popup/cv/cv-templates), for example `CVTemplate7.tsx`.
-2. Follow the shape used by an existing template such as [CVTemplate6.tsx](/Users/bhuwan/Documents/projects/intellicv/intellicv-browser/src/popup/cv/cv-templates/CVTemplate6.tsx).
-3. Register the new template in [cvTemplates.tsx](/Users/bhuwan/Documents/projects/intellicv/intellicv-browser/src/popup/cv/cv-templates/cvTemplates.tsx) by importing it, adding its ID to `CvTemplateId`, and appending it to the `cvTemplates` array with a label and description.
+1. Create a new template component file in `src/popup/cv/cv-templates`, for example `CVTemplate7.tsx`.
+2. Follow the shape used by an existing template such as `CVTemplate6.tsx`.
+3. Register the new template in `cvTemplates.tsx` by importing it, adding its ID to `CvTemplateId`, and appending it to the `cvTemplates` array with a label and description.
 
-You can also ask ChatGPT to draft `CVTemplate7.tsx` for you. The easiest way is to give it a strong prompt describing the visual style you want and include one existing file, like [CVTemplate6.tsx](/Users/bhuwan/Documents/projects/intellicv/intellicv-browser/src/popup/cv/cv-templates/CVTemplate6.tsx), as the reference example so it preserves the current component structure and prop contract.
+You can also ask ChatGPT to draft `CVTemplate7.tsx` for you. The easiest way is to give it a strong prompt describing the visual style you want and include one existing file, like `CVTemplate6.tsx`, as the reference example so it preserves the current component structure and prop contract.
 
 Sample prompt:
 
@@ -103,7 +103,7 @@ Reference file:
 ## Usage Flow
 
 1. Open a job posting page in Chrome.
-2. Open the AgileCV extension popup.
+2. Open the ZenCV extension popup.
 3. Review the processed text in the Job Description tab.
 4. Open the CV tab to preview and export the generated CV.
 5. Open the Cover Letter tab to preview, print, or open a Gmail compose draft.

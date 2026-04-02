@@ -117,3 +117,17 @@ Reference file:
 - Export uses the browser print flow rather than generating PDF files directly
 
 Open work is tracked in [TODO.md](https://github.com/bhuwanadhikari/ZenCV-client/blob/main/TODO.md).
+
+## Preview
+
+### Job Description
+
+![Job Description Preview](./src/images/Screenshot%202026-04-02%20at%2016.36.16.png)
+
+### CV Workspace
+
+![CV Workspace Preview](./src/images/Screenshot%202026-04-02%20at%2016.36.54.png)
+
+### Cover Letter
+
+![Cover Letter Preview](./src/images/Screenshot%202026-04-02%20at%2016.37.15.png)

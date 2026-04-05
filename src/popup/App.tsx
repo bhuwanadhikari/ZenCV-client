@@ -42,7 +42,7 @@ const tabItems: Array<{
   },
   {
     value: "setting",
-    label: "Setting",
+    label: "Settings",
     icon: Settings2,
     title: "Extension Settings",
   },

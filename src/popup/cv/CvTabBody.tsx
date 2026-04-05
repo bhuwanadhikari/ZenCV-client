@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { GenerationStatusBar } from "@/popup/components/GenerationStatusBar";
-import { cvTemplates, type CvTemplateId } from "./cv-templates/cvTemplates";
+import {
+  loadCvTemplates,
+  publicTemplates,
+  type CvTemplateDefinition,
+  type CvTemplateId,
+} from "./cv-templates";
 import {
   contentErrorStyle,
   errorStyle,
@@ -13,9 +18,38 @@ import {
 import { useCv } from "./hooks/useCv";
 
 export function CvTabBody() {
-  const [selectedTemplateId, setSelectedTemplateId] = useState<CvTemplateId>(
-    cvTemplates[0]?.id ?? "template-2",
+  const [cvTemplates, setCvTemplates] = useState<CvTemplateDefinition[]>(
+    () => publicTemplates as CvTemplateDefinition[],
   );
+  const [selectedTemplateId, setSelectedTemplateId] = useState<CvTemplateId>(
+    "template-2",
+  );
+
+  useEffect(() => {
+    let isActive = true;
+
+    void loadCvTemplates().then((loadedTemplates) => {
+      if (!isActive) {
+        return;
+      }
+
+      setCvTemplates(loadedTemplates);
+      setSelectedTemplateId((currentTemplateId) => {
+        const hasCurrentTemplate = loadedTemplates.some(
+          (template) => template.id === currentTemplateId,
+        );
+
+        return hasCurrentTemplate
+          ? currentTemplateId
+          : loadedTemplates[0]?.id ?? currentTemplateId;
+      });
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
   const {
     cvTemplateRef,
     downloadError,

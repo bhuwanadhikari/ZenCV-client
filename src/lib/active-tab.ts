@@ -15,7 +15,7 @@ export async function getActiveTabPageContext({
 }: GetActiveTabPageContextOptions = {}): Promise<ActiveTabPageContext> {
   if (!chrome?.tabs?.query) {
     throw new Error(
-      "Chrome tab APIs are unavailable. Open this UI from the installed extension instead of the regular Vite web page."
+      "Chrome tab APIs are unavailable. Open this UI from the installed extension instead of the regular Vite web page.",
     );
   }
 
@@ -41,19 +41,19 @@ export async function getActiveTabPageContext({
 
   if (!chrome?.scripting?.executeScript) {
     throw new Error(
-      "The Chrome scripting API is unavailable in this context. Reload the built extension and make sure the manifest includes the 'scripting' permission."
+      "The Chrome scripting API is unavailable in this context. Reload the built extension and make sure the manifest includes the 'scripting' permission.",
     );
   }
 
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId: activeTab.id },
     func: () => {
-      const documentHtml = document.documentElement?.outerHTML ?? "";
-      return documentHtml.trim() ? `<!DOCTYPE html>\n${documentHtml}` : "";
+      const documentHtml = document.body;
+      return documentHtml.outerText;
     },
   });
 
-  const pageHtml = typeof result === "string" ? result.trim() : "";
+  const pageHtml = result;
 
   if (!pageHtml) {
     throw new Error("No HTML was found on this page.");

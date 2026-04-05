@@ -16,6 +16,7 @@ type GenerationStatusBarProps = {
   extraAction?: ReactNode;
   retryDisabled?: boolean;
   isRetrying?: boolean;
+  showEndpoint?: boolean;
 };
 
 const statusConfig: Record<
@@ -51,6 +52,7 @@ export function GenerationStatusBar({
   extraAction,
   retryDisabled = false,
   isRetrying = false,
+  showEndpoint = false,
 }: GenerationStatusBarProps) {
   const { label, className } = statusConfig[status];
 
@@ -82,12 +84,14 @@ export function GenerationStatusBar({
         </button>
 
         <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-          <p className="m-0 truncate text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-600">
-            POST{" "}
-            <span className="normal-case tracking-normal text-slate-700">
-              {getEndpointPath(endpoint)}
-            </span>
-          </p>
+          {showEndpoint && (
+            <p className="m-0 truncate text-[12px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+              POST{" "}
+              <span className="normal-case tracking-normal text-slate-700">
+                {getEndpointPath(endpoint)}
+              </span>
+            </p>
+          )}
 
           <span className="shrink-0 text-[12px] font-bold uppercase tracking-[0.12em]">
             {label}

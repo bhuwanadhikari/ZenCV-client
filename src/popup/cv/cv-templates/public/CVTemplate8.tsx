@@ -51,6 +51,8 @@ export const CVTemplate8 = forwardRef<HTMLElement, CVTemplate8Props>(
             </div>
           </header>
 
+          {/* Separator before Profile */}
+          <hr className="cv-template-eight__separator" />
           <section className="cv-template-eight__section">
             <h2 className="cv-template-eight__section-title">
               {cv.profile.label}
@@ -59,85 +61,83 @@ export const CVTemplate8 = forwardRef<HTMLElement, CVTemplate8Props>(
           </section>
 
           {cv.sections.map((section) => (
-            <section key={section.title} className="cv-template-eight__section">
-              <h2 className="cv-template-eight__section-title">
-                {section.title}
-              </h2>
+            <div key={section.title}>
+              {/* Separator before main sections */}
+              <hr className="cv-template-eight__separator" />
 
-              {section.entries.map((entry) => {
-                const hasDateRange = Boolean(entry.dateRange);
-                const hasTitle = Boolean(entry.title);
-                const hasOrganizationName = Boolean(entry.organization.name);
-                const hasOrganizationAddress = Boolean(
-                  entry.organization.address,
-                );
+              <section className="cv-template-eight__section">
+                <h2 className="cv-template-eight__section-title">
+                  {section.title}
+                </h2>
 
-                return (
-                  <article
-                    key={`${entry.title}-${entry.dateRange}`}
-                    className="cv-template-eight__entry"
-                  >
-                    <div className="cv-template-eight__header-block">
-                      <div className="cv-template-eight__header-copy">
-                        {hasTitle ? (
-                          <p className="cv-template-eight__entry-title">
-                            {entry.title}
-                          </p>
-                        ) : null}
-                        {hasDateRange ? (
-                          <p className="cv-template-eight__date">
-                            {entry.dateRange}
-                          </p>
+                {section.entries.map((entry) => {
+                  const hasDateRange = Boolean(entry.dateRange);
+                  const hasTitle = Boolean(entry.title);
+                  const hasOrganizationName = Boolean(entry.organization.name);
+                  const hasOrganizationAddress = Boolean(
+                    entry.organization.address,
+                  );
+
+                  return (
+                    <article
+                      key={`${entry.title}-${entry.dateRange}`}
+                      className="cv-template-eight__entry"
+                    >
+                      <div className="cv-template-eight__header-block">
+                        <div className="cv-template-eight__header-copy">
+                          {hasTitle ? (
+                            <p className="cv-template-eight__entry-title">
+                              {entry.title}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        {entry.resource ? (
+                          <span className="cv-template-eight__resource">
+                            {entry.resource.url ? (
+                              <a href={entry.resource.url}>
+                                {entry.resource.placeholder}
+                              </a>
+                            ) : (
+                              entry.resource.placeholder
+                            )}
+                            <LinkResourceIcon />
+                          </span>
                         ) : null}
                       </div>
 
-                      {entry.resource ? (
-                        <span className="cv-template-eight__resource">
-                          {entry.resource.url ? (
-                            <a href={entry.resource.url}>
-                              {entry.resource.placeholder}
-                            </a>
-                          ) : (
-                            entry.resource.placeholder
-                          )}
-                          <LinkResourceIcon />
-                        </span>
-                      ) : null}
-                    </div>
+                      {(hasOrganizationName || hasDateRange || hasOrganizationAddress) && (
+                        <p className="cv-template-eight__org-line">
+                          {hasOrganizationName ? entry.organization.name : null}
+                          {hasOrganizationName && (hasDateRange || hasOrganizationAddress)
+                            ? " | "
+                            : null}
+                          {hasDateRange ? entry.dateRange : null}
+                          {hasDateRange && hasOrganizationAddress ? " | " : null}
+                          {hasOrganizationAddress ? entry.organization.address : null}
+                        </p>
+                      )}
 
-                    {(hasOrganizationName || hasOrganizationAddress) && (
-                      <p className="cv-template-eight__org-line">
-                        {hasOrganizationName ? (
-                          <em>{entry.organization.name}</em>
-                        ) : null}
-                        {hasOrganizationName && hasOrganizationAddress
-                          ? " | "
-                          : null}
-                        {hasOrganizationAddress
-                          ? entry.organization.address
-                          : null}
-                      </p>
-                    )}
-
-                    <ul className="cv-template-eight__list">
-                      {entry.bullets.map((bullet, bulletIndex) => (
-                        <li key={`${entry.title}-bullet-${bulletIndex}`}>
-                          <span
-                            className="cv-template-eight__bullet"
-                            aria-hidden="true"
-                          >
-                            •
-                          </span>
-                          <span className="cv-template-eight__bullet-text">
-                            {bullet}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </article>
-                );
-              })}
-            </section>
+                      <ul className="cv-template-eight__list">
+                        {entry.bullets.map((bullet, bulletIndex) => (
+                          <li key={`${entry.title}-bullet-${bulletIndex}`}>
+                            <span
+                              className="cv-template-eight__bullet"
+                              aria-hidden="true"
+                            >
+                              •
+                            </span>
+                            <span className="cv-template-eight__bullet-text">
+                              {bullet}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  );
+                })}
+              </section>
+            </div>
           ))}
         </div>
       </article>
@@ -182,21 +182,18 @@ const styles = `
     font-weight: 400;
     font-style: normal;
   }
-
   @font-face {
     font-family: "Lato";
     src: url("${latoBoldUrl}") format("truetype");
     font-weight: 700;
     font-style: normal;
   }
-
   @font-face {
     font-family: "Lato";
     src: url("${latoItalicUrl}") format("truetype");
     font-weight: 400;
     font-style: italic;
   }
-
   @font-face {
     font-family: "Lato";
     src: url("${latoBoldItalicUrl}") format("truetype");
@@ -327,20 +324,19 @@ const styles = `
     flex: 1 1 auto;
   }
 
-  .cv-template-eight__entry-title,
-  .cv-template-eight__date {
+  .cv-template-eight__entry-title {
     margin: 0;
     font-size: var(--font-size-body);
+    font-weight: 700;
     line-height: 1.35;
   }
 
-  .cv-template-eight__entry-title {
-    font-weight: 700;
-  }
-
   .cv-template-eight__date {
+    margin: 0;
     color: var(--template-eight-accent);
+    font-size: var(--font-size-body);
     font-weight: 700;
+    line-height: 1.35;
   }
 
   .cv-template-eight__org-line {
@@ -351,7 +347,7 @@ const styles = `
   }
 
   .cv-template-eight__org-line em {
-    font-style: italic;
+    font-style: normal;
   }
 
   .cv-template-eight__resource {
@@ -397,6 +393,12 @@ const styles = `
 
   .cv-template-eight__bullet-text {
     min-width: 0;
+  }
+
+  .cv-template-eight__separator {
+    border: none;
+    border-top: 1px solid #d1d5db;
+    margin: 12px 0;
   }
 
   @media print {

@@ -4,13 +4,17 @@ import type {
   CvEntry,
   CvSection,
 } from "@/constants/cvData";
+import {
+  clearStoredAuthSession,
+  getStoredAuthTokenAsync,
+} from "@/lib/auth-storage";
 import { normalizePageTitle } from "@/lib/page-title";
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
 const DEFAULT_AI_MODEL_NAME = "gpt-4.1-mini";
 
 export const API_BASE_URL = normalizeApiBaseUrl(
-  import.meta.env.VITE_API_BASE_URL,
+  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BACKEND_URL,
 );
 export const AI_MODEL_NAME = normalizeAiModelName(
   import.meta.env.VITE_AI_MODEL_NAME,
@@ -56,6 +60,31 @@ function normalizeAiModelName(value?: string) {
   return trimmedValue || DEFAULT_AI_MODEL_NAME;
 }
 
+async function getAuthenticatedJsonHeaders() {
+  const token = await getStoredAuthTokenAsync();
+
+  if (!token) {
+    throw new Error(
+      "You are not signed in. Open Settings and sign in with Google to continue.",
+    );
+  }
+
+  return {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+function throwIfUnauthorized(status: number) {
+  if (status !== 401) {
+    return;
+  }
+
+  clearStoredAuthSession();
+  throw new Error("Your session has expired. Please sign in again.");
+}
+
 type ProcessJobDescriptionParams = {
   pageHtml: string;
   job_url?: string;
@@ -67,12 +96,10 @@ export async function getProcessedJobDescription({
   job_url,
   page_title,
 }: ProcessJobDescriptionParams) {
+  const headers = await getAuthenticatedJsonHeaders();
   const response = await fetch(`${API_BASE_URL}/api/job-description/process`, {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       raw_html: pageHtml,
       job_url,
@@ -85,6 +112,8 @@ export async function getProcessedJobDescription({
   ) as ProcessedJobDescriptionResponse | null;
 
   if (!response.ok) {
+    throwIfUnauthorized(response.status);
+
     throw new Error(
       getErrorMessage(parsedBody) ||
         `Job description processing failed with status ${response.status}.`,
@@ -117,12 +146,10 @@ export async function getGeneratedCv({
   page_title,
   storyJsonOverride,
 }: GenerateCvParams) {
+  const headers = await getAuthenticatedJsonHeaders();
   const response = await fetch(`${API_BASE_URL}/api/cv/generate`, {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       job_description: jobDescription,
       job_url: job_url,
@@ -135,6 +162,8 @@ export async function getGeneratedCv({
   const parsedBody = parseJsonResponse(rawBody, "CV");
 
   if (!response.ok) {
+    throwIfUnauthorized(response.status);
+
     throw new Error(
       getErrorMessage(parsedBody) ||
         `CV generation failed with status ${response.status}.`,
@@ -159,12 +188,10 @@ export async function getGeneratedCoverLetter({
   job_url,
   page_title,
 }: GenerateCoverLetterParams) {
+  const headers = await getAuthenticatedJsonHeaders();
   const response = await fetch(`${API_BASE_URL}/api/cover-letter/generate`, {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       job_description: jobDescription,
       job_url,
@@ -175,6 +202,8 @@ export async function getGeneratedCoverLetter({
   const parsedBody = parseJsonResponse(rawBody, "Cover letter");
 
   if (!response.ok) {
+    throwIfUnauthorized(response.status);
+
     throw new Error(
       getErrorMessage(parsedBody) ||
         `Cover letter generation failed with status ${response.status}.`,

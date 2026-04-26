@@ -16,11 +16,13 @@ Supported variables:
 
 ```env
 VITE_API_BASE_URL=http://localhost:8000
+VITE_BACKEND_URL=http://localhost:8000
 VITE_AI_MODEL_NAME=gpt-4.1-mini
+VITE_GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
 VITE_FILE_NAME_PREFIX=my
 ```
 
-These are build-time values: `VITE_API_BASE_URL` powers API calls and host permissions, `VITE_AI_MODEL_NAME` is used for CV generation, and `VITE_FILE_NAME_PREFIX` sets the default export filename prefix. Rebuild and reload the extension after changing `.env`.
+These are build-time values: `VITE_API_BASE_URL` (or `VITE_BACKEND_URL`) powers API calls and host permissions, `VITE_AI_MODEL_NAME` is used for CV generation, `VITE_GOOGLE_CLIENT_ID` enables Google sign-in from the Settings tab, and `VITE_FILE_NAME_PREFIX` sets the default export filename prefix. Rebuild and reload the extension after changing `.env`.
 
 2. Install dependencies:
 
@@ -56,6 +58,9 @@ The production extension is emitted to `dist/`.
 
 The extension expects a backend that exposes:
 
+- `POST /api/auth/google/callback`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
 - `POST /api/job-description/process`
 - `POST /api/cv/generate`
 - `POST /api/cover-letter/generate`

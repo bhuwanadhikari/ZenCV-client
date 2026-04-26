@@ -4,7 +4,7 @@ import { getExtensionEnv, type ExtensionEnvInput } from "./src/lib/env.shared";
 const PAGE_HOST_PERMISSIONS = ["http://*/*", "https://*/*"];
 
 export function buildManifest(env: ExtensionEnvInput = process.env) {
-  const { hostPermission } = getExtensionEnv(env);
+  const { hostPermission, googleClientId } = getExtensionEnv(env);
 
   return defineManifest({
     manifest_version: 3,
@@ -18,7 +18,11 @@ export function buildManifest(env: ExtensionEnvInput = process.env) {
       48: "zencv_logo.png",
       128: "zencv_logo.png",
     },
-    permissions: ["activeTab", "scripting"],
+    permissions: ["activeTab", "scripting", "identity", "storage"],
+    oauth2: {
+      client_id: googleClientId,
+      scopes: ["openid", "email", "profile"],
+    },
     host_permissions: [...PAGE_HOST_PERMISSIONS, hostPermission],
     action: {
       default_title: "ZenCV",
@@ -29,6 +33,9 @@ export function buildManifest(env: ExtensionEnvInput = process.env) {
         48: "zencv_logo.png",
         128: "zencv_logo.png",
       },
+    },
+    background: {
+      service_worker: "src/background/index.ts",
     },
   });
 }

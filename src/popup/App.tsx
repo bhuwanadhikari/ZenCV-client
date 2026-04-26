@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ClipboardList,
   FileText,
@@ -51,9 +51,14 @@ const tabItems: Array<{
 export default function App() {
   const activeTab = usePopupStore((state) => state.activeTab);
   const setActiveTab = usePopupStore((state) => state.setActiveTab);
+  const hydrateAuthSession = usePopupStore((state) => state.hydrateAuthSession);
   const activeItem =
-    tabItems.find(({ value }) => value === activeTab) ?? tabItems[0];
+    tabItems.find(({ value }) => value === activeTab) ?? tabItems[3];
   const [isTabBarCollapsed, setIsTabBarCollapsed] = useState(false);
+
+  useEffect(() => {
+    void hydrateAuthSession();
+  }, [hydrateAuthSession]);
 
   return (
     <main className="flex h-full w-full overflow-hidden p-4">

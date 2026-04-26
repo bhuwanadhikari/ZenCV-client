@@ -1,8 +1,11 @@
 import {
   clearStoredAuthSession,
+  getStoredAuthSessionAsync,
   getStoredAuthTokenAsync,
   setStoredAuthSession,
   type AuthUser,
+  AUTH_TOKEN_STORAGE_KEY,
+  AUTH_USER_STORAGE_KEY,
 } from "@/lib/auth-storage";
 import {
   AUTH_MESSAGE_TYPE_SIGN_IN_WITH_GOOGLE,
@@ -274,6 +277,109 @@ function isRuntimeMessagingAvailable() {
 
 function requestBackgroundGoogleSignIn() {
   return new Promise<{ token: string; user: AuthUser }>((resolve, reject) => {
+    const waitForPersistedSession = async () => {
+      const initialSession = await getStoredAuthSessionAsync();
+      const initialToken = initialSession.token;
+      const storage =
+        typeof globalThis !== "undefined" && "chrome" in globalThis
+          ? (globalThis.chrome as typeof chrome).storage?.local
+          : undefined;
+
+      if (!storage?.get || !storage?.onChanged) {
+        const fallbackSession = await getStoredAuthSessionAsync();
+
+        if (fallbackSession.token && fallbackSession.user) {
+          return {
+            token: fallbackSession.token,
+            user: fallbackSession.user,
+          };
+        }
+
+        throw new Error("Google sign-in did not complete.");
+      }
+
+      return await new Promise<{ token: string; user: AuthUser }>((resolveSession, rejectSession) => {
+        let settled = false;
+        const timeoutMs = 120000;
+
+        const cleanup = () => {
+          storage.onChanged.removeListener(handleStorageChanged);
+          clearTimeout(timeoutId);
+        };
+
+        const resolveIfAvailable = async () => {
+          try {
+            const values = await storage.get([
+              AUTH_TOKEN_STORAGE_KEY,
+              AUTH_USER_STORAGE_KEY,
+            ]);
+            const token =
+              typeof values[AUTH_TOKEN_STORAGE_KEY] === "string"
+                ? values[AUTH_TOKEN_STORAGE_KEY]
+                : "";
+            const rawUser = values[AUTH_USER_STORAGE_KEY];
+            const user =
+              typeof rawUser === "string"
+                ? parseStoredAuthUser(rawUser)
+                : rawUser && typeof rawUser === "object"
+                  ? (rawUser as AuthUser)
+                  : null;
+
+            if (!token || !user) {
+              return;
+            }
+
+            if (token === initialToken) {
+              return;
+            }
+
+            if (settled) {
+              return;
+            }
+
+            settled = true;
+            cleanup();
+            resolveSession({ token, user });
+          } catch (error) {
+            if (settled) {
+              return;
+            }
+
+            settled = true;
+            cleanup();
+            rejectSession(error instanceof Error ? error : new Error("Unable to read auth session from storage."));
+          }
+        };
+
+        const handleStorageChanged: Parameters<
+          typeof storage.onChanged.addListener
+        >[0] = (changes) => {
+          if (!changes[AUTH_TOKEN_STORAGE_KEY] && !changes[AUTH_USER_STORAGE_KEY]) {
+            return;
+          }
+
+          void resolveIfAvailable();
+        };
+
+        const timeoutId = setTimeout(() => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          cleanup();
+          rejectSession(
+            new Error(
+              "Google sign-in is still in progress. Reopen the extension in a moment.",
+            ),
+          );
+        }, timeoutMs);
+
+        storage.onChanged.addListener(handleStorageChanged);
+        void resolveIfAvailable();
+      });
+    };
+
     chrome.runtime.sendMessage(
       {
         type: AUTH_MESSAGE_TYPE_SIGN_IN_WITH_GOOGLE,
@@ -296,10 +402,24 @@ function requestBackgroundGoogleSignIn() {
           return;
         }
 
-        resolve(response.data);
+        void waitForPersistedSession().then(resolve).catch(reject);
       },
     );
   });
+}
+
+function parseStoredAuthUser(rawUser: string) {
+  try {
+    const parsedUser = JSON.parse(rawUser) as unknown;
+
+    if (!parsedUser || typeof parsedUser !== "object") {
+      return null;
+    }
+
+    return parsedUser as AuthUser;
+  } catch {
+    return null;
+  }
 }
 
 function shouldFallbackToPopupOAuth(error: unknown) {

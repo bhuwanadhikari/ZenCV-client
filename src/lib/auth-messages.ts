@@ -9,10 +9,6 @@ export type AuthSignInWithGoogleRequest = {
 export type AuthSignInWithGoogleResponse =
   | {
       ok: true;
-      data: {
-        token: string;
-        user: AuthUser;
-      };
     }
   | {
       ok: false;

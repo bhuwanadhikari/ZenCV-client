@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { getCurrentUser } from "@/lib/auth";
 import { getStoredAuthSessionAsync, type AuthUser } from "@/lib/auth-storage";
 
 export type PopupTab = "cover-letter" | "cv" | "job-description" | "setting";
@@ -46,6 +47,28 @@ export const usePopupStore = create<PopupState>((set) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   hydrateAuthSession: async () => {
     const { token, user } = await getStoredAuthSessionAsync();
+
+    if (token && !user) {
+      try {
+        const refreshedUser = await getCurrentUser();
+
+        set({
+          authToken: token,
+          authUser: refreshedUser,
+          authStatus: "signed-in",
+          authError: "",
+        });
+        return;
+      } catch {
+        set({
+          authToken: "",
+          authUser: null,
+          authStatus: "signed-out",
+          authError: "",
+        });
+        return;
+      }
+    }
 
     set({
       authToken: token,

@@ -18,7 +18,7 @@ export function buildManifest(env: ExtensionEnvInput = process.env) {
       48: "zencv_logo.png",
       128: "zencv_logo.png",
     },
-    permissions: ["activeTab", "scripting", "identity", "storage"],
+    permissions: ["activeTab", "scripting", "identity", "storage", "tabs"],
     oauth2: {
       client_id: googleClientId,
       scopes: ["openid", "email", "profile"],

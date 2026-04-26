@@ -29,11 +29,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   void handleGoogleSignInRequest()
-    .then((payload) => {
-      sendResponse({
-        ok: true,
-        data: payload,
-      } satisfies AuthSignInWithGoogleResponse);
+    .then(() => {
+      sendResponse({ ok: true } satisfies AuthSignInWithGoogleResponse);
     })
     .catch((error: unknown) => {
       const errorMessage =
@@ -41,6 +38,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           ? error.message
           : "Unable to complete Google authentication.";
 
+      console.error("Google sign-in failed in background service worker:", errorMessage);
       sendResponse({
         ok: false,
         error: errorMessage,
@@ -67,7 +65,7 @@ async function handleGoogleSignInRequest() {
     state,
   });
 
-  const callbackUrl = await launchWebAuthFlow({ authUrl, redirectUri });
+  const callbackUrl = await runGoogleAuthInTab({ authUrl, redirectUri });
   const parsedCallbackUrl = new URL(callbackUrl);
   const callbackState = parsedCallbackUrl.searchParams.get("state") ?? "";
 
@@ -88,15 +86,153 @@ async function handleGoogleSignInRequest() {
   }
 
   const payload = await exchangeAuthorizationCode({ code, redirectUri });
-  await chrome.storage.local.set({
-    [AUTH_TOKEN_STORAGE_KEY]: payload.access_token,
-    [AUTH_USER_STORAGE_KEY]: JSON.stringify(payload.user),
-  });
-
-  return {
+  await persistAuthSession({
     token: payload.access_token,
     user: payload.user,
-  };
+  });
+  // Allow a brief propagation window before signaling completion to the popup.
+  await delay(350);
+
+}
+
+async function runGoogleAuthInTab(payload: { authUrl: string; redirectUri: string }) {
+  const createdTab = await chrome.tabs.create({
+    url: payload.authUrl,
+    active: true,
+  });
+
+  if (!createdTab.id) {
+    throw new Error("Unable to open Google sign-in tab.");
+  }
+
+  const authTabId = createdTab.id;
+
+  return await new Promise<string>((resolve, reject) => {
+    let settled = false;
+
+    const cleanup = () => {
+      chrome.tabs.onUpdated.removeListener(handleUpdated);
+      chrome.tabs.onRemoved.removeListener(handleRemoved);
+    };
+
+    const finalize = (callback: () => void) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+      callback();
+    };
+
+    const closeAuthTab = async () => {
+      try {
+        await chrome.tabs.remove(authTabId);
+      } catch {
+        // Ignore if the user already closed the tab.
+      }
+    };
+
+    const handleRemoved = (tabId: number) => {
+      if (tabId !== authTabId) {
+        return;
+      }
+
+      finalize(() => {
+        reject(new Error("Google sign-in was canceled before completion."));
+      });
+    };
+
+    const handleUpdated = (
+      tabId: number,
+      changeInfo: chrome.tabs.TabChangeInfo,
+      tab: chrome.tabs.Tab,
+    ) => {
+      if (tabId !== authTabId) {
+        return;
+      }
+
+      const currentUrl = changeInfo.url || tab.url;
+
+      if (!currentUrl) {
+        return;
+      }
+
+      if (!currentUrl.startsWith(payload.redirectUri)) {
+        return;
+      }
+
+      void closeAuthTab();
+      finalize(() => {
+        resolve(currentUrl);
+      });
+    };
+
+    chrome.tabs.onUpdated.addListener(handleUpdated);
+    chrome.tabs.onRemoved.addListener(handleRemoved);
+  });
+}
+
+async function persistAuthSession(payload: { token: string; user: AuthUser }) {
+  const maxAttempts = 3;
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await chrome.storage.local.set({
+        [AUTH_TOKEN_STORAGE_KEY]: payload.token,
+        [AUTH_USER_STORAGE_KEY]: JSON.stringify(payload.user),
+      });
+
+      const storedValues = await chrome.storage.local.get([
+        AUTH_TOKEN_STORAGE_KEY,
+        AUTH_USER_STORAGE_KEY,
+      ]);
+      const storedToken =
+        typeof storedValues[AUTH_TOKEN_STORAGE_KEY] === "string"
+          ? storedValues[AUTH_TOKEN_STORAGE_KEY]
+          : "";
+      const storedUser = parseStoredAuthUser(storedValues[AUTH_USER_STORAGE_KEY]);
+
+      if (storedToken === payload.token && storedUser) {
+        return;
+      }
+
+      lastError = new Error(
+        `Auth session write verification failed on attempt ${attempt}.`,
+      );
+    } catch (error) {
+      lastError =
+        error instanceof Error
+          ? error
+          : new Error("Unable to persist auth session in extension storage.");
+    }
+  }
+
+  throw (
+    lastError ??
+    new Error("Unable to persist auth session in extension storage.")
+  );
+}
+
+function parseStoredAuthUser(rawValue: unknown) {
+  if (typeof rawValue === "string") {
+    try {
+      const parsed = JSON.parse(rawValue) as unknown;
+
+      if (parsed && typeof parsed === "object") {
+        return parsed as AuthUser;
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  if (rawValue && typeof rawValue === "object") {
+    return rawValue as AuthUser;
+  }
+
+  return null;
 }
 
 async function exchangeAuthorizationCode(payload: {
@@ -129,41 +265,6 @@ async function exchangeAuthorizationCode(payload: {
   }
 
   return parsedBody;
-}
-
-function launchWebAuthFlow(payload: { authUrl: string; redirectUri: string }) {
-  return new Promise<string>((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow(
-      {
-        url: payload.authUrl,
-        interactive: true,
-      },
-      (callbackUrl) => {
-        const runtimeError = chrome.runtime.lastError;
-
-        if (runtimeError?.message) {
-          if (runtimeError.message.includes("redirect_uri_mismatch")) {
-            reject(
-              new Error(
-                `Google OAuth redirect URI mismatch. Configure this exact redirect URI in your Google OAuth client: ${payload.redirectUri}`,
-              ),
-            );
-            return;
-          }
-
-          reject(new Error(runtimeError.message));
-          return;
-        }
-
-        if (!callbackUrl) {
-          reject(new Error("Google sign-in did not return a callback URL."));
-          return;
-        }
-
-        resolve(callbackUrl);
-      },
-    );
-  });
 }
 
 function buildGoogleAuthorizationUrl(payload: {
@@ -248,4 +349,10 @@ function normalizeApiBaseUrl(value?: string) {
   }
 
   return trimmedValue.replace(/\/+$/, "");
+}
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

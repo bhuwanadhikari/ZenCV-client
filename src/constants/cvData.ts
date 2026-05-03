@@ -32,6 +32,7 @@ export type CvSection = {
 export type CvData = {
   name: string;
   role: string;
+  photo: string;
   contactLines: CvContactItem[][];
   profile: {
     label: string;

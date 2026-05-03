@@ -197,6 +197,7 @@ function mapGeneratedCvResponse(payload: unknown): CvData {
 
   return {
     name: getFirstString(root, ["name", "fullName"]) ?? "",
+    photo: getFirstString(root, ["photo", "avatar", "image"]) ?? "",
     role: getFirstString(root, ["role", "title", "headline", "position"]) ?? "",
     contactLines: mapContactLines(root),
     profile: mapProfile(root),
@@ -462,7 +463,12 @@ function mapEntry(value: unknown) {
   const organizationName =
     (organizationRecord &&
       getFirstString(organizationRecord, ["name", "title", "label"])) ??
-    getFirstString(record, ["organization", "company", "institution", "school"]) ??
+    getFirstString(record, [
+      "organization",
+      "company",
+      "institution",
+      "school",
+    ]) ??
     "";
   const organizationUrl = buildExternalHref(
     (organizationRecord &&

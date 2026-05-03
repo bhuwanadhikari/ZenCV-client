@@ -23,6 +23,26 @@ export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
 
         <div className="cv-template-three__page">
           <aside className="cv-template-three__sidebar">
+            <div className="cv-template-three__avatar-wrap">
+              <div className="cv-template-three__avatar">
+                {cv.photo ? (
+                  <img
+                    src={cv.photo}
+                    alt={`${cv.name} photo`}
+                    className="cv-template-three__avatar-image"
+                  />
+                ) : (
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                  </svg>
+                )}
+              </div>
+            </div>
+
             <div>
               <h1 className="cv-template-three__name">{cv.name}</h1>
               <p className="cv-template-three__role">{cv.role}</p>
@@ -72,7 +92,10 @@ export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
 
           <main className="cv-template-three__main">
             {cv.sections.map((section) => (
-              <section key={section.title} className="cv-template-three__section">
+              <section
+                key={section.title}
+                className="cv-template-three__section"
+              >
                 <div className="cv-template-three__section-heading">
                   <h2 className="cv-template-three__section-title">
                     {section.title}
@@ -85,7 +108,10 @@ export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
                       key={`${entry.title}-${entry.dateRange}`}
                       className="cv-template-three__entry"
                     >
-                      <span className="cv-template-three__dot" aria-hidden="true" />
+                      <span
+                        className="cv-template-three__dot"
+                        aria-hidden="true"
+                      />
 
                       <div className="cv-template-three__entry-card">
                         <div className="cv-template-three__entry-header">
@@ -97,12 +123,6 @@ export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
                               {entry.dateRange}
                             </p>
                           </div>
-
-                          <ResourceLink
-                            resource={entry.resource}
-                            className="cv-template-three__resource"
-                            linkClassName="cv-template-three__resource-link"
-                          />
                         </div>
 
                         <p className="cv-template-three__organization">
@@ -164,49 +184,81 @@ function ContactLine({
   linkClassName?: string;
   separator?: React.ReactNode;
 }) {
-  return (
-    <div className={className}>
-      {line.map((item, itemIndex) => (
-        <span key={`${item.label ?? item.value}-${itemIndex}`}>
-          {itemIndex > 0 ? separator : null}
-          {item.label ? `${item.label}: ` : null}
-          {item.href ? (
-            <a href={item.href} className={linkClassName}>
-              {item.value}
-            </a>
-          ) : (
-            item.value
-          )}
-        </span>
-      ))}
-    </div>
-  );
-}
+  // Render certain contact items as block elements (one per line):
+  // address, email, github, linkedin — or when value looks like an email or href indicates these.
+  function shouldBreak(item: CvContactItem) {
+    const label = (item.label || "").toLowerCase();
+    const href = (item.href || "").toLowerCase();
+    const value = (item.value || "").toLowerCase();
 
-function ResourceLink({
-  resource,
-  className,
-  linkClassName,
-}: {
-  resource?: CvEntry["resource"];
-  className?: string;
-  linkClassName?: string;
-}) {
-  if (!resource) {
-    return null;
+    if (
+      label.includes("address") ||
+      label.includes("email") ||
+      label.includes("github") ||
+      label.includes("linkedin") ||
+      label.includes("portfolio")
+    ) {
+      return true;
+    }
+
+    if (
+      href.includes("mailto:") ||
+      href.includes("github.com") ||
+      href.includes("linkedin.com")
+    ) {
+      return true;
+    }
+
+    if (value.includes("@")) {
+      return true;
+    }
+
+    return false;
   }
 
+  let prevWasInline = false;
+
   return (
-    <span className={className}>
-      {resource.url ? (
-        <a href={resource.url} className={linkClassName}>
-          {resource.placeholder}
-        </a>
-      ) : (
-        resource.placeholder
-      )}
-      <LinkResourceIcon />
-    </span>
+    <div className={className}>
+      {line.map((item, itemIndex) => {
+        const isBreak = shouldBreak(item);
+        if (isBreak) {
+          prevWasInline = false;
+          return (
+            <div
+              key={`${item.label ?? item.value}-${itemIndex}`}
+              className="cv-template-three__contact-item"
+            >
+              {item.label ? `${item.label}: ` : null}
+              {item.href ? (
+                <a href={item.href} className={linkClassName}>
+                  {item.value}
+                </a>
+              ) : (
+                item.value
+              )}
+            </div>
+          );
+        }
+
+        const showSeparator = prevWasInline && itemIndex > 0;
+        prevWasInline = true;
+
+        return (
+          <span key={`${item.label ?? item.value}-${itemIndex}`}>
+            {showSeparator ? separator : null}
+            {item.label ? `${item.label}: ` : null}
+            {item.href ? (
+              <a href={item.href} className={linkClassName}>
+                {item.value}
+              </a>
+            ) : (
+              item.value
+            )}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
@@ -234,35 +286,6 @@ function BulletList({
         </li>
       ))}
     </ul>
-  );
-}
-
-function LinkResourceIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width="13"
-      height="13"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M6 4.5H4.75A2.25 2.25 0 0 0 2.5 6.75v4.5a2.25 2.25 0 0 0 2.25 2.25h4.5a2.25 2.25 0 0 0 2.25-2.25V10"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8 3.5h4.5V8M12.25 3.75 7 9"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }
 
@@ -323,7 +346,7 @@ const styles = `
 
   .cv-template-three__page {
     display: grid;
-    grid-template-columns: 63mm minmax(0, 1fr);
+    grid-template-columns: 72mm minmax(0, 1fr);
     width: 210mm;
     min-height: 297mm;
     margin: 0 auto;
@@ -331,42 +354,76 @@ const styles = `
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
   }
 
+  /* ── Sidebar ── */
+
   .cv-template-three__sidebar {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 16mm 11mm;
-    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    color: #e2e8f0;
+    gap: 14px;
+    padding: 12mm 8mm;
+    background: #f8fafc;
+    color: #0f172a;
+    border-right: 1px solid #e2e8f0;
+  }
+
+  .cv-template-three__avatar-wrap {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .cv-template-three__avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    border: 2px solid #0ea5e9;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cv-template-three__avatar svg {
+    width: 40px;
+    height: 40px;
+    color: #94a3b8;
+  }
+
+  .cv-template-three__avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .cv-template-three__name {
     margin: 0;
-    font-size: 27px;
+    font-size: 30px;
     line-height: 1.05;
     font-weight: 800;
   }
 
   .cv-template-three__role {
-    margin: 8px 0 0;
-    color: #93c5fd;
-    font-size: 12px;
+    margin: 5px 0 0;
+    color: #0369a1;
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: 0.24em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
+    line-height: 1.4;
   }
 
   .cv-template-three__sidebar-section {
-    border-top: 1px solid rgba(148, 163, 184, 0.28);
-    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 10px;
   }
 
   .cv-template-three__label {
-    margin: 0 0 8px;
-    color: #7dd3fc;
+    margin: 0 0 6px;
+    color: #0284c7;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
   }
 
@@ -375,88 +432,99 @@ const styles = `
     margin: 0;
     font-size: 12px;
     line-height: 1.58;
-    color: #e2e8f0;
+    color: #334155;
   }
 
   .cv-template-three__contact-stack,
   .cv-template-three__skill-groups {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 3px;
   }
 
   .cv-template-three__contact-line {
     font-size: 12px;
     line-height: 1.45;
-    color: #cbd5e1;
+    color: #475569;
   }
 
-  .cv-template-three__contact-link,
-  .cv-template-three__organization-link,
-  .cv-template-three__resource-link {
-    color: inherit;
+  .cv-template-three__contact-link {
+    color: #0369a1;
     text-decoration: none;
   }
 
   .cv-template-three__separator {
-    margin: 0 4px;
-    color: #38bdf8;
+    margin: 0 3px;
+    color: #94a3b8;
+  }
+
+  .cv-template-three__contact-item {
+    display: block;
+    margin-top: 2px;
   }
 
   .cv-template-three__skill-name {
-    margin: 0 0 4px;
-    color: #ffffff;
+    margin: 0 0 3px;
+    color: #0f172a;
     font-size: 12px;
     font-weight: 800;
   }
 
+  /* ── Main ── */
+
   .cv-template-three__main {
-    padding: 13mm 15mm 12mm 14mm;
+    padding: 11mm 13mm 10mm 6mm;
   }
 
   .cv-template-three__section + .cv-template-three__section {
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .cv-template-three__section-heading {
-    padding-bottom: 6px;
-    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 5px;
+    border-bottom: 1.5px solid #0ea5e9;
   }
 
   .cv-template-three__section-title {
     margin: 0;
     color: #0f172a;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 800;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
+  /* ── Timeline ── */
+
   .cv-template-three__timeline {
     position: relative;
-    margin-top: 10px;
-    padding-left: 16px;
+    margin-top: 8px;
+    padding-left: 18px;
   }
 
   .cv-template-three__timeline::before {
     content: "";
     position: absolute;
-    top: 2px;
+    top: 0;
     bottom: 0;
     left: 4px;
     width: 2px;
-    background: #cbd5e1;
+    background: #e2e8f0;
   }
 
   .cv-template-three__entry {
     position: relative;
-    margin-bottom: 10px;
+    margin-bottom: 9px;
   }
 
+  /*
+   * Dot alignment: card padding-top (9px) + half title line-height (13.5px * 1.2 / 2 ≈ 8px)
+   * − half dot height (5px) = 12px → rounded to 17px for optical balance.
+   */
   .cv-template-three__dot {
     position: absolute;
-    top: 8px;
-    left: -16px;
+    left: -18px;
+    top: 12px;
     width: 10px;
     height: 10px;
     border-radius: 999px;
@@ -466,17 +534,14 @@ const styles = `
   }
 
   .cv-template-three__entry-card {
-    border-radius: 16px;
-    border: 1px solid #dbe4ee;
-    background: #ffffff;
-    padding: 11px 12px;
+    padding: 9px 10px;
   }
 
   .cv-template-three__entry-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
   }
 
   .cv-template-three__entry-title,
@@ -489,33 +554,31 @@ const styles = `
   .cv-template-three__entry-title {
     font-size: 15px;
     font-weight: 800;
+    line-height: 1.2;
   }
 
   .cv-template-three__entry-meta {
-    margin-top: 3px;
+    margin-top: 2px;
     color: #0369a1;
     font-size: 12px;
     font-weight: 700;
   }
 
-  .cv-template-three__resource {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    color: #0369a1;
-    font-size: 12px;
-    white-space: nowrap;
-  }
-
   .cv-template-three__organization {
-    margin-top: 7px;
+    margin-top: 5px;
     color: #475569;
     font-size: 12px;
     line-height: 1.45;
   }
 
+  .cv-template-three__organization-link,
+  .cv-template-three__contact-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
   .cv-template-three__stack {
-    margin-top: 5px;
+    margin-top: 4px;
     color: #334155;
     font-size: 11px;
     font-weight: 700;
@@ -524,7 +587,7 @@ const styles = `
   }
 
   .cv-template-three__bullet-list {
-    margin: 8px 0 0;
+    margin: 6px 0 0;
     padding: 0;
     list-style: none;
   }
@@ -532,15 +595,15 @@ const styles = `
   .cv-template-three__bullet-item {
     display: grid;
     grid-template-columns: 10px 1fr;
-    gap: 8px;
+    gap: 6px;
     align-items: start;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
     font-size: 12px;
-    line-height: 1.45;
+    line-height: 1.5;
   }
 
   .cv-template-three__bullet-symbol {
-    color: #0284c7;
+    color: #0ea5e9;
   }
 
   .cv-template-three__bullet-text {

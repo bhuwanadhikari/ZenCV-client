@@ -7,6 +7,7 @@ export type CvTemplateId =
   | "template-1"
   | "template-2"
   | "template-3"
+  | "template-columned"
   | "template-4"
   | "template-5"
   | "template-6"

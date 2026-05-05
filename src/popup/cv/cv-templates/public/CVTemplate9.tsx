@@ -4,32 +4,32 @@ import latoBoldUrl from "@/fonts/lato/Lato-Bold.ttf";
 import latoItalicUrl from "@/fonts/lato/Lato-Italic.ttf";
 import latoBoldItalicUrl from "@/fonts/lato/Lato-BoldItalic.ttf";
 
-import type { CvContactItem, CvData, CvEntry } from "@/constants/cvData";
+import type { CvContactItem, CvData } from "@/constants/cvData";
 
-type CVTemplate3Props = {
+type CVTemplate9Props = {
   cv: CvData;
   previewZoom: number;
 };
 
-export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
-  function CVTemplate3({ cv, previewZoom }, ref) {
+export const CVTemplate9 = forwardRef<HTMLElement, CVTemplate9Props>(
+  function CVTemplate9({ cv, previewZoom }, ref) {
     return (
       <article
         ref={ref}
-        className="cv-document cv-document--preview cv-template-three"
+        className="cv-document cv-document--preview cv-template-nine"
         style={getPreviewDocumentStyle(previewZoom)}
       >
         <style>{styles}</style>
 
-        <div className="cv-template-three__page">
-          <aside className="cv-template-three__sidebar">
-            <div className="cv-template-three__avatar-wrap">
-              <div className="cv-template-three__avatar">
+        <div className="cv-template-nine__page">
+          <aside className="cv-template-nine__sidebar">
+            <div className="cv-template-nine__avatar-wrap">
+              <div className="cv-template-nine__avatar">
                 {cv.photo ? (
                   <img
                     src={cv.photo}
                     alt={`${cv.name} photo`}
-                    className="cv-template-three__avatar-image"
+                    className="cv-template-nine__avatar-image"
                   />
                 ) : (
                   <svg
@@ -44,44 +44,44 @@ export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
             </div>
 
             <div>
-              <h1 className="cv-template-three__name">{cv.name}</h1>
-              <p className="cv-template-three__role">{cv.role}</p>
+              <h1 className="cv-template-nine__name">{cv.name}</h1>
+              <p className="cv-template-nine__role">{cv.role}</p>
             </div>
 
-            <section className="cv-template-three__sidebar-section">
-              <p className="cv-template-three__label">{cv.profile.label}</p>
-              <p className="cv-template-three__summary">{cv.profile.summary}</p>
+            <section className="cv-template-nine__sidebar-section">
+              <p className="cv-template-nine__label">{cv.profile.label}</p>
+              <p className="cv-template-nine__summary">{cv.profile.summary}</p>
             </section>
 
-            <section className="cv-template-three__sidebar-section">
-              <p className="cv-template-three__label">Contact</p>
-              <div className="cv-template-three__contact-stack">
+            <section className="cv-template-nine__sidebar-section">
+              <p className="cv-template-nine__label">Contact</p>
+              <div className="cv-template-nine__contact-stack">
                 {cv.contactLines.map((line, lineIndex) => (
                   <ContactLine
-                    key={`template-three-contact-${lineIndex}`}
+                    key={`template-nine-contact-${lineIndex}`}
                     line={line}
-                    className="cv-template-three__contact-line"
-                    linkClassName="cv-template-three__contact-link"
+                    className="cv-template-nine__contact-line"
+                    linkClassName="cv-template-nine__contact-link"
                     separator={
-                      <span className="cv-template-three__separator">/</span>
+                      <span className="cv-template-nine__separator">/</span>
                     }
                   />
                 ))}
               </div>
             </section>
 
-            <section className="cv-template-three__sidebar-section">
-              <p className="cv-template-three__label">Skills</p>
-              <div className="cv-template-three__skill-groups">
+            <section className="cv-template-nine__sidebar-section">
+              <p className="cv-template-nine__label">Skills</p>
+              <div className="cv-template-nine__skill-groups">
                 {cv.skillGroups.map((skillGroup) => (
                   <div
                     key={skillGroup.label}
-                    className="cv-template-three__skill-group"
+                    className="cv-template-nine__skill-group"
                   >
-                    <h3 className="cv-template-three__skill-name">
+                    <h3 className="cv-template-nine__skill-name">
                       {skillGroup.label}
                     </h3>
-                    <p className="cv-template-three__skill-items">
+                    <p className="cv-template-nine__skill-items">
                       {skillGroup.items.join(" · ")}
                     </p>
                   </div>
@@ -90,46 +90,41 @@ export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
             </section>
           </aside>
 
-          <main className="cv-template-three__main">
+          <main className="cv-template-nine__main">
             {cv.sections.map((section) => (
               <section
                 key={section.title}
-                className="cv-template-three__section"
+                className="cv-template-nine__section"
               >
-                <div className="cv-template-three__section-heading">
-                  <h2 className="cv-template-three__section-title">
+                <div className="cv-template-nine__section-heading">
+                  <h2 className="cv-template-nine__section-title">
                     {section.title}
                   </h2>
                 </div>
 
-                <div className="cv-template-three__timeline">
+                <div className="cv-template-nine__entries">
                   {section.entries.map((entry) => (
                     <article
                       key={`${entry.title}-${entry.dateRange}`}
-                      className="cv-template-three__entry"
+                      className="cv-template-nine__entry"
                     >
-                      <span
-                        className="cv-template-three__dot"
-                        aria-hidden="true"
-                      />
-
-                      <div className="cv-template-three__entry-card">
-                        <div className="cv-template-three__entry-header">
+                      <div className="cv-template-nine__entry-card">
+                        <div className="cv-template-nine__entry-header">
                           <div>
-                            <p className="cv-template-three__entry-title">
+                            <p className="cv-template-nine__entry-title">
                               {entry.title}
                             </p>
-                            <p className="cv-template-three__entry-meta">
+                            <p className="cv-template-nine__entry-meta">
                               {entry.dateRange}
                             </p>
                           </div>
                         </div>
 
-                        <p className="cv-template-three__organization">
+                        <p className="cv-template-nine__organization">
                           {entry.organization.url ? (
                             <a
                               href={entry.organization.url}
-                              className="cv-template-three__organization-link"
+                              className="cv-template-nine__organization-link"
                             >
                               {entry.organization.name}
                             </a>
@@ -142,17 +137,17 @@ export const CVTemplate3 = forwardRef<HTMLElement, CVTemplate3Props>(
                         </p>
 
                         {entry.stack?.length ? (
-                          <p className="cv-template-three__stack">
+                          <p className="cv-template-nine__stack">
                             {entry.stack.join(" / ")}
                           </p>
                         ) : null}
 
                         <BulletList
                           bullets={entry.bullets}
-                          className="cv-template-three__bullet-list"
-                          itemClassName="cv-template-three__bullet-item"
-                          bulletClassName="cv-template-three__bullet-symbol"
-                          textClassName="cv-template-three__bullet-text"
+                          className="cv-template-nine__bullet-list"
+                          itemClassName="cv-template-nine__bullet-item"
+                          bulletClassName="cv-template-nine__bullet-symbol"
+                          textClassName="cv-template-nine__bullet-text"
                         />
                       </div>
                     </article>
@@ -227,7 +222,7 @@ function ContactLine({
           return (
             <div
               key={`${item.label ?? item.value}-${itemIndex}`}
-              className="cv-template-three__contact-item"
+              className="cv-template-nine__contact-item"
             >
               {item.label ? `${item.label}: ` : null}
               {item.href ? (
@@ -344,7 +339,7 @@ const styles = `
     zoom: var(--cv-preview-zoom, 1);
   }
 
-  .cv-template-three__page {
+  .cv-template-nine__page {
     display: grid;
     grid-template-columns: 72mm minmax(0, 1fr);
     width: 210mm;
@@ -356,22 +351,22 @@ const styles = `
 
   /* ── Sidebar ── */
 
-  .cv-template-three__sidebar {
+  .cv-template-nine__sidebar {
     display: flex;
     flex-direction: column;
     gap: 14px;
     padding: 12mm 8mm;
-    background: #f8fafc;
+    background: transparent;
     color: #0f172a;
     border-right: 1px solid #e2e8f0;
   }
 
-  .cv-template-three__avatar-wrap {
+  .cv-template-nine__avatar-wrap {
     display: flex;
     justify-content: flex-start;
   }
 
-  .cv-template-three__avatar {
+  .cv-template-nine__avatar {
     width: 100px;
     height: 100px;
     border-radius: 50%;
@@ -383,27 +378,27 @@ const styles = `
     justify-content: center;
   }
 
-  .cv-template-three__avatar svg {
+  .cv-template-nine__avatar svg {
     width: 40px;
     height: 40px;
     color: #94a3b8;
   }
 
-  .cv-template-three__avatar-image {
+  .cv-template-nine__avatar-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
   }
 
-  .cv-template-three__name {
+  .cv-template-nine__name {
     margin: 0;
     font-size: 30px;
     line-height: 1.05;
     font-weight: 800;
   }
 
-  .cv-template-three__role {
+  .cv-template-nine__role {
     margin: 5px 0 0;
     color: #0369a1;
     font-size: 14px;
@@ -413,12 +408,12 @@ const styles = `
     line-height: 1.4;
   }
 
-  .cv-template-three__sidebar-section {
+  .cv-template-nine__sidebar-section {
     border-top: 1px solid #e2e8f0;
     padding-top: 10px;
   }
 
-  .cv-template-three__label {
+  .cv-template-nine__label {
     margin: 0 0 6px;
     color: #0284c7;
     font-size: 11px;
@@ -427,43 +422,43 @@ const styles = `
     text-transform: uppercase;
   }
 
-  .cv-template-three__summary,
-  .cv-template-three__skill-items {
+  .cv-template-nine__summary,
+  .cv-template-nine__skill-items {
     margin: 0;
     font-size: 12px;
     line-height: 1.58;
     color: #334155;
   }
 
-  .cv-template-three__contact-stack,
-  .cv-template-three__skill-groups {
+  .cv-template-nine__contact-stack,
+  .cv-template-nine__skill-groups {
     display: flex;
     flex-direction: column;
     gap: 3px;
   }
 
-  .cv-template-three__contact-line {
+  .cv-template-nine__contact-line {
     font-size: 12px;
     line-height: 1.45;
     color: #475569;
   }
 
-  .cv-template-three__contact-link {
+  .cv-template-nine__contact-link {
     color: #0369a1;
     text-decoration: none;
   }
 
-  .cv-template-three__separator {
+  .cv-template-nine__separator {
     margin: 0 3px;
     color: #94a3b8;
   }
 
-  .cv-template-three__contact-item {
+  .cv-template-nine__contact-item {
     display: block;
     margin-top: 2px;
   }
 
-  .cv-template-three__skill-name {
+  .cv-template-nine__skill-name {
     margin: 0 0 3px;
     color: #0f172a;
     font-size: 12px;
@@ -472,20 +467,20 @@ const styles = `
 
   /* ── Main ── */
 
-  .cv-template-three__main {
+  .cv-template-nine__main {
     padding: 8mm 13mm 8mm 6mm;
   }
 
-  .cv-template-three__section + .cv-template-three__section {
+  .cv-template-nine__section + .cv-template-nine__section {
     margin-top: 10px;
   }
 
-  .cv-template-three__section-heading {
+  .cv-template-nine__section-heading {
     padding-bottom: 5px;
     border-bottom: 1.5px solid #0ea5e9;
   }
 
-  .cv-template-three__section-title {
+  .cv-template-nine__section-title {
     margin: 0;
     color: #0f172a;
     font-size: 16px;
@@ -494,90 +489,61 @@ const styles = `
     text-transform: uppercase;
   }
 
-  /* ── Timeline ── */
+  /* ── Entries ── */
 
-  .cv-template-three__timeline {
-    position: relative;
+  .cv-template-nine__entries {
     margin-top: 8px;
-    padding-left: 18px;
   }
 
-  .cv-template-three__timeline::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 4px;
-    width: 2px;
-    background: #e2e8f0;
-  }
-
-  .cv-template-three__entry {
-    position: relative;
+  .cv-template-nine__entry {
     margin-bottom: 9px;
   }
 
-  /*
-   * Dot alignment: card padding-top (9px) + half title line-height (13.5px * 1.2 / 2 ≈ 8px)
-   * − half dot height (5px) = 12px → rounded to 17px for optical balance.
-   */
-  .cv-template-three__dot {
-    position: absolute;
-    left: -18px;
-    top: 12px;
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
-    background: #0ea5e9;
-    border: 2px solid #ffffff;
-    box-shadow: 0 0 0 2px #e0f2fe;
-  }
-
-  .cv-template-three__entry-card {
+  .cv-template-nine__entry-card {
     padding: 9px 10px;
   }
 
-  .cv-template-three__entry-header {
+  .cv-template-nine__entry-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 8px;
   }
 
-  .cv-template-three__entry-title,
-  .cv-template-three__entry-meta,
-  .cv-template-three__organization,
-  .cv-template-three__stack {
+  .cv-template-nine__entry-title,
+  .cv-template-nine__entry-meta,
+  .cv-template-nine__organization,
+  .cv-template-nine__stack {
     margin: 0;
   }
 
-  .cv-template-three__entry-title {
+  .cv-template-nine__entry-title {
     font-size: 15px;
     font-weight: 800;
     line-height: 1.2;
   }
 
-  .cv-template-three__entry-meta {
+  .cv-template-nine__entry-meta {
     margin-top: 2px;
     color: #0369a1;
     font-size: 12px;
     font-weight: 700;
   }
 
-  .cv-template-three__organization {
+  .cv-template-nine__organization {
     margin-top: 5px;
     color: #475569;
     font-size: 12px;
     line-height: 1.45;
   }
 
-  .cv-template-three__organization-link,
-  .cv-template-three__contact-link {
+  .cv-template-nine__organization-link,
+  .cv-template-nine__contact-link {
     color: inherit;
     text-decoration: none;
   }
 
-  .cv-template-three__stack {
+  .cv-template-nine__stack {
     margin-top: 4px;
     color: #334155;
     font-size: 11px;
@@ -586,13 +552,13 @@ const styles = `
     text-transform: uppercase;
   }
 
-  .cv-template-three__bullet-list {
+  .cv-template-nine__bullet-list {
     margin: 6px 0 0;
     padding: 0;
     list-style: none;
   }
 
-  .cv-template-three__bullet-item {
+  .cv-template-nine__bullet-item {
     display: grid;
     grid-template-columns: 10px 1fr;
     gap: 6px;
@@ -602,11 +568,11 @@ const styles = `
     line-height: 1.5;
   }
 
-  .cv-template-three__bullet-symbol {
+  .cv-template-nine__bullet-symbol {
     color: #0ea5e9;
   }
 
-  .cv-template-three__bullet-text {
+  .cv-template-nine__bullet-text {
     min-width: 0;
   }
 
@@ -617,7 +583,7 @@ const styles = `
       zoom: 1;
     }
 
-    .cv-template-three__page {
+    .cv-template-nine__page {
       box-shadow: none;
     }
   }

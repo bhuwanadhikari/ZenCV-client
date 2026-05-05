@@ -6,6 +6,7 @@ import { CVTemplate4 } from "./CVTemplate4";
 import { CVTemplate5 } from "./CVTemplate5";
 import { CVTemplate6 } from "./CVTemplate6";
 import { CVTemplate8 } from "./CVTemplate8";
+import { CVTemplate9 } from "./CVTemplate9";
 
 type CvTemplateComponent = ForwardRefExoticComponent<
   {
@@ -40,6 +41,12 @@ export const publicTemplates: CvTemplateDefinition[] = [
     label: "Timeline",
     description: "Strong left rail with a clean timeline body",
     component: CVTemplate3,
+  },
+  {
+    id: "template-columned",
+    label: "Columned",
+    description: "Two-column layout with clean stacked entries",
+    component: CVTemplate9,
   },
   {
     id: "template-4",

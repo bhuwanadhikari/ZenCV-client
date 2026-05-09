@@ -1,36 +1,22 @@
-import { defineManifest } from "@crxjs/vite-plugin";
-import { getExtensionEnv, type ExtensionEnvInput } from "./src/lib/env.shared";
+export function buildManifest(env: Record<string, string | undefined>) {
+  const apiBase = env.VITE_API_BASE_URL || "http://localhost:8000";
 
-const PAGE_HOST_PERMISSIONS = ["http://*/*", "https://*/*"];
-
-export function buildManifest(env: ExtensionEnvInput = process.env) {
-  const { hostPermission } = getExtensionEnv(env);
-
-  return defineManifest({
+  return {
     manifest_version: 3,
     name: "ZenCV",
     version: "0.1.0",
-    description:
-      "A Chrome extension popup for managing cover letters, CVs, and settings.",
+    description: "ZenCV extension",
     icons: {
-      16: "zencv_logo.png",
-      32: "zencv_logo.png",
-      48: "zencv_logo.png",
-      128: "zencv_logo.png",
+      "48": "zencv_logo.png",
+      "128": "zencv_logo.png",
     },
-    permissions: ["activeTab", "scripting"],
-    host_permissions: [...PAGE_HOST_PERMISSIONS, hostPermission],
     action: {
-      default_title: "ZenCV",
       default_popup: "popup.html",
-      default_icon: {
-        16: "zencv_logo.png",
-        32: "zencv_logo.png",
-        48: "zencv_logo.png",
-        128: "zencv_logo.png",
-      },
+      default_icon: "zencv_logo.png",
     },
-  });
+    permissions: ["scripting", "storage", "activeTab"],
+    host_permissions: [apiBase + "/*"],
+  } as const;
 }
 
-export default buildManifest();
+export default buildManifest;

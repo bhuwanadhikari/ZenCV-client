@@ -1,5 +1,7 @@
 # ZenCV
 
+# See how I turned this pilot project into a real project in my blog: CogniResume Blog](https://bhuwanadhikari.com.np/projects/2026-05-30-cogniresume/)
+
 ZenCV is a Chrome extension that reads the active tab, turns the page HTML into a cleaned job description, and then generates a tailored CV and cover letter inside the popup.
 
 Backend Repo: https://github.com/bhuwanadhikari/ZenCV-server
